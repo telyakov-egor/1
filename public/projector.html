@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Экран игры | Квизли</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .game-screen {
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 60px;
+            padding: 20px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 16px;
+            backdrop-filter: blur(10px);
+        }
+
+        .round-info {
+            font-size: 20px;
+            color: #94a3b8;
+        }
+
+        .timer {
+            font-size: 64px;
+            font-weight: 700;
+            color: #fd5b01;
+            text-shadow: 0 0 20px rgba(253, 91, 1, 0.3);
+        }
+
+        .timer.warning {
+            color: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .question-container {
+            background: rgba(255,255,255,0.03);
+            border-radius: 32px;
+            padding: 48px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .question {
+            font-size: 48px;
+            font-weight: 600;
+            color: white;
+            line-height: 1.3;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .option {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 24px;
+            padding: 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transition: all 0.3s;
+        }
+
+        .option.correct {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: #10b981;
+            box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+        }
+
+        .option-letter {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .option.correct .option-letter {
+            background: #10b981;
+        }
+
+        .option-text {
+            font-size: 24px;
+            color: white;
+            flex: 1;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .answered-count {
+            background: rgba(255,255,255,0.05);
+            padding: 16px 32px;
+            border-radius: 50px;
+            color: #10b981;
+            font-size: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .waiting-message {
+            text-align: center;
+            color: #94a3b8;
+            font-size: 32px;
+            padding: 60px;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-screen">
+        <div class="header">
+            <div class="round-info" id="roundDisplay">Раунд 1</div>
+            <div class="timer" id="timerDisplay">30</div>
+        </div>
+
+        <div id="questionContainer" class="question-container">
+            <div class="question" id="questionDisplay">
+                Загрузка вопроса...
+            </div>
+
+            <div class="options-grid" id="optionsGrid">
+                <!-- Варианты будут добавлены динамически -->
+            </div>
+        </div>
+
+        <div class="footer">
+            <div class="answered-count" id="answeredDisplay">
+                <i class="fas fa-check-circle"></i> 0/0 ответили
+            </div>
+        </div>
+    </div>
+
+    <div id="waitingScreen" class="waiting-message hidden">
+        <i class="fas fa-hourglass-half"></i> Ожидание вопроса...
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"></script>
+    <script>
+        let ws;
+        let currentQuestion = null;
+        let teams = [];
+
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${window.location.host}`);
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                switch(data.type) {
+                    case 'timer_update':
+                        updateTimer(data.timeLeft);
+                        break;
+                        
+                    case 'timer_started':
+                        showQuestion(data.questionId);
+                        break;
+                        
+                    case 'show_answer':
+                        highlightCorrectAnswer(data.correctOptionId);
+                        break;
+                        
+                    case 'hide_question':
+                        hideQuestion();
+                        break;
+                        
+                    case 'next_question':
+                        currentQuestion = data.question;
+                        document.getElementById('roundDisplay').textContent = `Раунд ${data.round}`;
+                        showQuestion(data.question.id);
+                        break;
+                        
+                    case 'answer_submitted':
+                        document.getElementById('answeredDisplay').innerHTML = 
+                            `<i class="fas fa-check-circle"></i> ${data.answeredCount}/${data.totalTeams} ответили`;
+                        break;
+                }
+            };
+        }
+
+        function updateTimer(timeLeft) {
+            const timerDisplay = document.getElementById('timerDisplay');
+            timerDisplay.textContent = timeLeft;
+            
+            if (timeLeft <= 5) {
+                timerDisplay.classList.add('warning');
+            } else {
+                timerDisplay.classList.remove('warning');
+            }
+        }
+
+        function showQuestion(questionId) {
+            if (!currentQuestion || currentQuestion.id !== questionId) return;
+            
+            document.getElementById('waitingScreen').classList.add('hidden');
+            document.querySelector('.game-screen').style.display = 'block';
+            
+            document.getElementById('questionDisplay').textContent = currentQuestion.text;
+            
+            const grid = document.getElementById('optionsGrid');
+            grid.innerHTML = currentQuestion.options.map(opt => `
+                <div class="option" data-option-id="${opt.id}">
+                    <div class="option-letter">${opt.letter}</div>
+                    <div class="option-text">${opt.text}</div>
+                </div>
+            `).join('');
+        }
+
+        function highlightCorrectAnswer(correctOptionId) {
+            document.querySelectorAll('.option').forEach(opt => {
+                if (opt.dataset.optionId === correctOptionId) {
+                    opt.classList.add('correct');
+                }
+            });
+        }
+
+        function hideQuestion() {
+            document.querySelector('.game-screen').style.display = 'none';
+            document.getElementById('waitingScreen').classList.remove('hidden');
+        }
+
+        // Загрузка начального состояния
+        async function loadInitialState() {
+            try {
+                const res = await fetch('/api/game/state');
+                const data = await res.json();
+                
+                teams = data.teams;
+                
+                const currentRound = data.rounds.find(r => r.id === `r${data.currentRound}`);
+                currentQuestion = currentRound?.questions.find(q => q.id === data.currentQuestionId);
+                
+                if (data.showOptions) {
+                    showQuestion(data.currentQuestionId);
+                    document.getElementById('timerDisplay').textContent = data.timerDuration;
+                }
+                
+                document.getElementById('answeredDisplay').innerHTML = 
+                    `<i class="fas fa-check-circle"></i> ${data.answeredCount}/${data.totalTeams} ответили`;
+                document.getElementById('roundDisplay').textContent = `Раунд ${data.currentRound}`;
+            } catch (e) {
+                console.error('Ошибка загрузки:', e);
+            }
+        }
+
+        connectWebSocket();
+        loadInitialState();
+    </script>
+</body>
+</html>

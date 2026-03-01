@@ -1,470 +1,536 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Kahoot Pro - Участник</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Подключение к игре | Квизли</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f5f7fb;
             min-height: 100vh;
             display: flex;
-            justify-content: center;
             align-items: center;
-            padding: 15px;
-            color: white;
+            justify-content: center;
+            padding: 20px;
         }
 
-        /* Экран входа */
-        .join-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: clamp(20px, 5vw, 60px);
-            padding: clamp(20px, 5vw, 50px);
-            width: min(500px, 100%);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        .join-container {
+            max-width: 450px;
+            width: 100%;
         }
 
-        .join-card h1 {
+        .logo {
             text-align: center;
-            font-size: clamp(2rem, 8vw, 3.5rem);
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: clamp(20px, 5vw, 40px);
+            margin-bottom: 30px;
         }
 
-        .join-card input {
+        .logo h1 {
+            color: #fd5b01;
+            font-size: 48px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        .join-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: #475569;
+            margin-bottom: 8px;
+        }
+
+        input {
             width: 100%;
-            padding: clamp(15px, 3vw, 20px);
-            border-radius: 60px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            color: white;
-            font-size: clamp(16px, 4vw, 1.3rem);
-            margin: 10px 0;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        input:focus {
             outline: none;
+            border-color: #fd5b01;
         }
 
-        .join-card input::placeholder {
-            color: rgba(255, 255, 255, 0.6);
+        .code-input {
+            font-size: 32px;
+            font-weight: 600;
+            text-align: center;
+            letter-spacing: 8px;
+            font-family: monospace;
         }
 
-        .join-card button {
+        .btn {
             width: 100%;
-            padding: clamp(15px, 3vw, 20px);
-            border-radius: 60px;
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            border: none;
-            font-size: clamp(1.5rem, 6vw, 2rem);
-            font-weight: 800;
+            padding: 18px;
+            background: #fd5b01;
             color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
             cursor: pointer;
-            border-bottom: 5px solid #b45f06;
+            transition: all 0.2s;
             margin-top: 20px;
-            transition: all 0.1s;
         }
 
-        .join-card button:active {
-            transform: translateY(3px);
-            border-bottom-width: 2px;
+        .btn:hover {
+            background: #e64e00;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(253, 91, 1, 0.2);
         }
 
-        .game-screen {
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .info {
+            margin-top: 24px;
+            padding: 16px;
+            background: #f8fafc;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #64748b;
+            text-align: center;
+        }
+
+        .info i {
+            color: #fd5b01;
+            margin-right: 8px;
+        }
+
+        .error {
+            color: #ef4444;
+            font-size: 14px;
+            margin-top: 12px;
+            text-align: center;
             display: none;
-            width: min(600px, 100%);
         }
 
-        .game-screen.active {
+        .error.show {
             display: block;
         }
 
-        /* Общие стили для карточек */
-        .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: clamp(20px, 5vw, 60px);
-            padding: clamp(20px, 5vw, 40px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: fadeIn 0.5s;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Экран ожидания */
-        .waiting-screen {
+        .powered {
+            margin-top: 30px;
             text-align: center;
+            color: #94a3b8;
+            font-size: 12px;
         }
 
-        .loader {
-            width: min(100px, 20vw);
-            height: min(100px, 20vw);
-            border: 10px solid rgba(255, 255, 255, 0.2);
-            border-top: 10px solid #ffd700;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
+        /* Экран игры для участника */
+        .game-screen {
+            background: white;
+            border-radius: 24px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
         }
 
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
+        .team-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 30px;
         }
 
-        /* Экран вопроса */
-        .question-screen {
+        .team-name {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .team-score {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fd5b01;
+        }
+
+        .waiting-question {
             text-align: center;
+            padding: 60px 20px;
+            color: #94a3b8;
+        }
+
+        .waiting-question i {
+            font-size: 48px;
+            margin-bottom: 20px;
+            color: #fd5b01;
         }
 
         .question-text {
-            font-size: clamp(1.3rem, 5vw, 2rem);
-            font-weight: 700;
-            margin: 15px 0;
-            line-height: 1.3;
-        }
-
-        .timer-circle {
-            width: min(120px, 25vw);
-            height: min(120px, 25vw);
-            background: linear-gradient(135deg, #ff4d4d, #ff0000);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(2rem, 8vw, 3.5rem);
-            font-weight: 800;
-            margin: 15px auto;
-            border: 4px solid white;
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
-        }
-
-        .options-list {
-            margin: 20px 0;
-        }
-
-        .answer-btn {
-            width: 100%;
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            padding: clamp(15px, 3vw, 20px);
-            border-radius: 60px;
-            margin: 8px 0;
-            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            font-size: 24px;
             font-weight: 600;
-            color: white;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .player-timer {
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+            color: #fd5b01;
+            margin-bottom: 30px;
+        }
+
+        .player-timer.warning {
+            color: #ef4444;
+            animation: pulse 1s infinite;
+        }
+
+        .player-options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .player-option {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 18px;
+            text-align: center;
             cursor: pointer;
             transition: all 0.2s;
-            border-bottom: 5px solid #4a2b9c;
+            background: white;
         }
 
-        .answer-btn:active:not(:disabled) {
-            transform: translateY(2px);
+        .player-option:hover {
+            border-color: #fd5b01;
         }
 
-        .answer-btn.selected {
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            border-color: white;
-        }
-
-        /* Экран результата */
-        .result-screen {
-            text-align: center;
-        }
-
-        .result-icon {
-            font-size: clamp(4rem, 15vw, 8rem);
-            margin: 15px 0;
-        }
-
-        .points-badge {
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            padding: clamp(15px, 3vw, 20px);
-            border-radius: 60px;
-            font-size: clamp(1.8rem, 6vw, 2.5rem);
-            font-weight: 800;
+        .player-option.selected {
+            background: #fd5b01;
             color: white;
-            margin: 15px 0;
+            border-color: #fd5b01;
         }
 
-        .total-score {
-            font-size: clamp(1.2rem, 4vw, 1.5rem);
-            color: rgba(255, 255, 255, 0.9);
-            margin: 10px 0;
+        .player-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
 
-        .rank-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: clamp(12px, 2.5vw, 15px) clamp(20px, 4vw, 30px);
-            border-radius: 40px;
-            font-size: clamp(1.2rem, 4vw, 1.5rem);
-            margin-top: 15px;
+        .player-option.correct {
+            background: #10b981;
+            color: white;
+            border-color: #10b981;
+        }
+
+        .player-option.wrong {
+            background: #ef4444;
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .answer-status {
+            text-align: center;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .answer-status.correct {
+            background: #f0fdf4;
+            color: #10b981;
+        }
+
+        .answer-status.wrong {
+            background: #fef2f2;
+            color: #ef4444;
         }
 
         .hidden {
-            display: none !important;
-        }
-
-        .error-message {
-            color: #ff4d4d;
-            text-align: center;
-            margin-top: 15px;
-            font-size: 1.1rem;
+            display: none;
         }
     </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-
 <body>
     <!-- Экран входа -->
-    <div id="joinCard" class="join-card">
-        <h1>🔐 ВХОД</h1>
-        <input type="text" id="playerName" placeholder="Ваше имя" value="Игрок" autocomplete="off">
-        <input type="text" id="pinInput" placeholder="PIN-код" autocomplete="off">
-        <button id="joinBtn">Войти</button>
-        <div id="error" class="error-message"></div>
+    <div class="join-container" id="joinScreen">
+        <div class="logo">
+            <h1>КВИЗЛИ</h1>
+        </div>
+        
+        <div class="join-card">
+            <div class="form-group">
+                <label>Код игры</label>
+                <input type="text" class="code-input" id="gameCode" placeholder="EGA78" maxlength="5">
+            </div>
+            
+            <div class="form-group">
+                <label>Название команды</label>
+                <input type="text" id="teamName" placeholder="Введите название команды">
+            </div>
+            
+            <button class="btn" id="joinBtn">
+                <i class="fas fa-sign-in-alt"></i> Войти в игру
+            </button>
+            
+            <div class="error" id="errorMessage">
+                <i class="fas fa-exclamation-circle"></i> Неверный код игры
+            </div>
+            
+            <div class="info">
+                <i class="fas fa-info-circle"></i> Введите код игры, который сообщил ведущий
+            </div>
+        </div>
+        
+        <div class="powered">
+            Сделано на платформе «Квизли»
+        </div>
     </div>
 
     <!-- Экран игры -->
-    <div id="gameScreen" class="game-screen">
-        <!-- Ожидание вопроса -->
-        <div id="waitingScreen" class="card waiting-screen">
-            <div class="loader"></div>
-            <h2>Ожидание вопроса...</h2>
-            <p style="margin-top: 15px; opacity: 0.8;">Приготовьтесь!</p>
+    <div class="join-container" id="gameScreen" style="display: none;">
+        <div class="logo">
+            <h1>КВИЗЛИ</h1>
         </div>
-
-        <!-- Экран вопроса -->
-        <div id="questionScreen" class="card question-screen hidden">
-            <div id="questionText" class="question-text"></div>
-            <div id="timerDisplay" class="timer-circle">0</div>
-            <div id="optionsContainer" class="options-list"></div>
-        </div>
-
-        <!-- Ожидание после ответа -->
-        <div id="waitingAnswerScreen" class="card waiting-screen hidden">
-            <div class="loader"></div>
-            <h2>Ждем остальных...</h2>
-            <p style="margin-top: 15px; opacity: 0.8;">Ваш ответ принят</p>
-        </div>
-
-        <!-- Результат -->
-        <div id="resultScreen" class="card result-screen hidden">
-            <div id="resultIcon" class="result-icon"></div>
-            <h2 id="resultMessage"></h2>
-            <div id="pointsDisplay" class="points-badge">+0</div>
-            <div id="totalScoreDisplay" class="total-score">Всего очков: 0</div>
-            <div id="rankDisplay" class="rank-badge">
-                <i class="fas fa-trophy" style="color: #ffd700;"></i>
-                Ваше место: <span id="placeDisplay">-</span>
+        
+        <div class="game-screen">
+            <div class="team-header">
+                <span class="team-name" id="teamNameDisplay">Команда</span>
+                <span class="team-score" id="teamScoreDisplay">0</span>
+            </div>
+            
+            <!-- Ожидание вопроса -->
+            <div id="waitingQuestion" class="waiting-question">
+                <i class="fas fa-hourglass-half fa-spin"></i>
+                <h3>Ожидание вопроса...</h3>
+                <p>Скоро появится вопрос</p>
+            </div>
+            
+            <!-- Активный вопрос -->
+            <div id="activeQuestion" style="display: none;">
+                <div class="question-text" id="questionDisplay"></div>
+                <div class="player-timer" id="timerDisplay">30</div>
+                <div class="player-options" id="optionsContainer"></div>
+                <div class="answer-status hidden" id="answerStatus"></div>
             </div>
         </div>
     </div>
 
     <script>
-        let ws;
-        let participantId;
+        let teamId = null;
+        let teamName = '';
+        let teamScore = 0;
         let currentQuestion = null;
         let hasAnswered = false;
-        let playerName = '';
+        let ws;
+        let timerInterval;
 
-        document.getElementById('joinBtn').addEventListener('click', () => {
-            playerName = document.getElementById('playerName').value.trim() || 'Игрок';
-            const pin = document.getElementById('pinInput').value.trim();
-
-            if (!pin) {
-                document.getElementById('error').textContent = 'Введите PIN-код';
-                return;
-            }
-
-            document.getElementById('joinBtn').disabled = true;
-            document.getElementById('joinBtn').textContent = 'Подключение...';
-
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.host}`;
-            ws = new WebSocket(wsUrl);
-
-            ws.onopen = () => {
-                ws.send(JSON.stringify({
-                    type: 'join',
-                    name: playerName,
-                    pin: pin
-                }));
-            };
-
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-
-                switch (data.type) {
-                    case 'joined':
-                        if (data.success) {
-                            participantId = data.participantId;
-                            document.getElementById('joinCard').style.display = 'none';
-                            document.getElementById('gameScreen').classList.add('active');
-                            document.getElementById('error').textContent = '';
-                        } else {
-                            document.getElementById('error').textContent = 'Неверный PIN-код';
-                            document.getElementById('joinBtn').disabled = false;
-                            document.getElementById('joinBtn').textContent = 'Войти';
-                        }
-                        break;
-
-                    case 'current_slide':
-                        handleSlide(data.slide, data.showOptions, data.timeLeft);
-                        break;
-
-                    case 'slide_changed':
-                        hasAnswered = false;
-                        handleSlide(data.slide, false, 0);
-                        break;
-
-                    case 'show_options':
-                        if (currentQuestion) {
-                            showQuestionScreen(data.timer);
-                        }
-                        break;
-
-                    case 'timer_update':
-                        updateTimer(data.timeLeft);
-                        break;
-
-                    case 'answer_accepted':
-                        document.getElementById('questionScreen').classList.add('hidden');
-                        document.getElementById('waitingAnswerScreen').classList.remove('hidden');
-                        break;
-
-                    case 'your_result':
-                        showResult(data.correct, data.correctAnswer, data.pointsEarned, data.totalScore);
-                        break;
-
-                    case 'leaderboard':
-                        updateRank(data.leaderboard);
-                        break;
-                }
-            };
+        document.getElementById('joinBtn').addEventListener('click', joinGame);
+        document.getElementById('gameCode').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') joinGame();
         });
 
-        function handleSlide(slide, showOptions, timeLeft) {
-            document.getElementById('waitingScreen').classList.add('hidden');
-            document.getElementById('questionScreen').classList.add('hidden');
-            document.getElementById('waitingAnswerScreen').classList.add('hidden');
-            document.getElementById('resultScreen').classList.add('hidden');
-
-            if (slide.type === 'question') {
-                currentQuestion = slide;
-                document.getElementById('questionText').textContent = slide.question;
-
-                const optionsContainer = document.getElementById('optionsContainer');
-                optionsContainer.innerHTML = '';
-
-                slide.options.forEach((opt, index) => {
-                    const button = document.createElement('button');
-                    button.className = 'answer-btn';
-                    button.textContent = opt;
-                    button.dataset.index = index;
-                    button.onclick = () => selectAnswer(index, button);
-                    optionsContainer.appendChild(button);
+        async function joinGame() {
+            const code = document.getElementById('gameCode').value.trim().toUpperCase();
+            teamName = document.getElementById('teamName').value.trim() || 'Новая команда';
+            
+            if (!code) {
+                showError('Введите код игры');
+                return;
+            }
+            
+            try {
+                const res = await fetch('/api/game/join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, teamName })
                 });
-
-                if (showOptions && !hasAnswered) {
-                    showQuestionScreen(timeLeft);
-                } else {
-                    document.getElementById('waitingScreen').classList.remove('hidden');
+                
+                const data = await res.json();
+                
+                if (data.error) {
+                    showError(data.error);
+                    return;
                 }
-            } else {
-                document.getElementById('waitingScreen').classList.remove('hidden');
-                currentQuestion = null;
+                
+                teamId = data.teamId;
+                
+                document.getElementById('joinScreen').style.display = 'none';
+                document.getElementById('gameScreen').style.display = 'block';
+                document.getElementById('teamNameDisplay').textContent = teamName;
+                
+                connectWebSocket();
+            } catch (e) {
+                showError('Ошибка подключения к серверу');
             }
         }
 
-        function showQuestionScreen(timeLeft) {
-            document.getElementById('waitingScreen').classList.add('hidden');
-            document.getElementById('questionScreen').classList.remove('hidden');
-            document.getElementById('timerDisplay').textContent = timeLeft || 0;
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
 
-            document.querySelectorAll('.answer-btn').forEach(btn => {
-                btn.disabled = false;
-                btn.classList.remove('selected');
-            });
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${window.location.host}`);
+            
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ type: 'join_as_player', teamId }));
+            };
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                
+                switch(data.type) {
+                    case 'timer_started':
+                        loadQuestion(data.questionId);
+                        break;
+                        
+                    case 'timer_update':
+                        updateTimer(data.timeLeft);
+                        break;
+                        
+                    case 'timer_finished':
+                        endTimer();
+                        break;
+                        
+                    case 'show_answer':
+                        showCorrectAnswer(data.correctOptionId);
+                        break;
+                        
+                    case 'next_question':
+                        resetForNewQuestion();
+                        break;
+                        
+                    case 'score_updated':
+                        if (data.teamId === teamId) {
+                            teamScore = data.newScore;
+                            document.getElementById('teamScoreDisplay').textContent = teamScore;
+                        }
+                        break;
+                }
+            };
+        }
+
+        async function loadQuestion(questionId) {
+            const res = await fetch('/api/game/state');
+            const data = await res.json();
+            
+            const currentRound = data.rounds.find(r => r.id === `r${data.currentRound}`);
+            currentQuestion = currentRound?.questions.find(q => q.id === questionId);
+            
+            if (!currentQuestion) return;
+            
+            document.getElementById('waitingQuestion').style.display = 'none';
+            document.getElementById('activeQuestion').style.display = 'block';
+            document.getElementById('questionDisplay').textContent = currentQuestion.text;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = currentQuestion.options.map(opt => `
+                <button class="player-option" data-option-id="${opt.id}" onclick="selectAnswer('${opt.id}')">
+                    ${opt.letter}. ${opt.text}
+                </button>
+            `).join('');
+            
+            hasAnswered = false;
         }
 
         function updateTimer(timeLeft) {
             const timerDisplay = document.getElementById('timerDisplay');
             timerDisplay.textContent = timeLeft;
+            
+            if (timeLeft <= 5) {
+                timerDisplay.classList.add('warning');
+            }
         }
 
-        function selectAnswer(index, button) {
-            if (!currentQuestion || hasAnswered) return;
+        function endTimer() {
+            if (!hasAnswered) {
+                disableOptions();
+            }
+        }
 
-            document.querySelectorAll('.answer-btn').forEach(btn => {
+        function selectAnswer(optionId) {
+            if (hasAnswered || !currentQuestion) return;
+            
+            hasAnswered = true;
+            disableOptions();
+            
+            // Подсветка выбранного варианта
+            document.querySelectorAll('.player-option').forEach(btn => {
+                if (btn.dataset.optionId === optionId) {
+                    btn.classList.add('selected');
+                }
+            });
+            
+            // Отправка ответа на сервер
+            fetch('/api/game/submit-answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamId, optionId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                const statusEl = document.getElementById('answerStatus');
+                statusEl.classList.remove('hidden');
+                
+                if (data.isCorrect) {
+                    statusEl.className = 'answer-status correct';
+                    statusEl.innerHTML = `
+                        <i class="fas fa-check-circle fa-2x"></i>
+                        <h3>Правильно!</h3>
+                        <p>+${data.pointsEarned} очков</p>
+                    `;
+                    teamScore += data.pointsEarned;
+                    document.getElementById('teamScoreDisplay').textContent = teamScore;
+                } else {
+                    statusEl.className = 'answer-status wrong';
+                    statusEl.innerHTML = `
+                        <i class="fas fa-times-circle fa-2x"></i>
+                        <h3>Неправильно</h3>
+                    `;
+                }
+            });
+        }
+
+        function showCorrectAnswer(correctOptionId) {
+            document.querySelectorAll('.player-option').forEach(btn => {
+                btn.disabled = true;
+                if (btn.dataset.optionId === correctOptionId) {
+                    btn.classList.add('correct');
+                } else if (btn.classList.contains('selected')) {
+                    btn.classList.add('wrong');
+                }
+            });
+        }
+
+        function disableOptions() {
+            document.querySelectorAll('.player-option').forEach(btn => {
                 btn.disabled = true;
             });
-            button.classList.add('selected');
-
-            hasAnswered = true;
-
-            ws.send(JSON.stringify({
-                type: 'answer',
-                answer: parseInt(index)
-            }));
         }
 
-        function showResult(isCorrect, correctAnswer, pointsEarned, totalScore) {
-            document.getElementById('waitingAnswerScreen').classList.add('hidden');
-            document.getElementById('questionScreen').classList.add('hidden');
-            document.getElementById('resultScreen').classList.remove('hidden');
-
-            const resultIcon = document.getElementById('resultIcon');
-            const resultMessage = document.getElementById('resultMessage');
-            const pointsDisplay = document.getElementById('pointsDisplay');
-            const totalScoreDisplay = document.getElementById('totalScoreDisplay');
-
-            if (isCorrect) {
-                resultIcon.innerHTML = '✅';
-                resultMessage.innerHTML = `Правильно!<br><small>${correctAnswer}</small>`;
-                pointsDisplay.innerHTML = `+${pointsEarned}`;
-            } else {
-                resultIcon.innerHTML = '❌';
-                resultMessage.innerHTML = `Неправильно<br><small>Правильный ответ: ${correctAnswer}</small>`;
-                pointsDisplay.innerHTML = `+0`;
-            }
-
-            totalScoreDisplay.innerHTML = `Всего очков: ${totalScore}`;
-        }
-
-        function updateRank(leaderboard) {
-            const index = leaderboard.findIndex(item => item.name === playerName);
-            if (index !== -1) {
-                document.getElementById('placeDisplay').textContent = index + 1;
-            }
+        function resetForNewQuestion() {
+            document.getElementById('waitingQuestion').style.display = 'block';
+            document.getElementById('activeQuestion').style.display = 'none';
+            document.getElementById('answerStatus').classList.add('hidden');
+            document.getElementById('timerDisplay').classList.remove('warning');
         }
     </script>
 </body>
-
 </html>

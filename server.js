@@ -2,311 +2,400 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Хранилище данных игры
+// Хранилище данных
 let gameState = {
     pin: Math.floor(1000 + Math.random() * 9000).toString(),
+    code: 'EGA78',
     active: false,
-    currentSlide: 0,
+    currentRound: 1,
+    currentQuestionId: 'q1',
     showOptions: false,
     timerActive: false,
     timerEndTime: null,
-    timerDuration: 0,
-    questionStartTime: null,
+    timerDuration: 30,
     correctAnswerRevealed: false,
     answers: new Map(),
-    answeredCount: 0
+    answeredCount: 0,
+    startTime: null
 };
 
-let participants = [];
+// Команды
+let teams = [
+    { id: 't1', name: 'Ffc', score: 500, answers: [], isActive: true }
+];
 
-// Вопросы с медиа
-let questions = [
+// Вопросы (полная структура как в Квизли)
+let rounds = [
     {
-        type: 'welcome',
-        title: '🎮 Добро пожаловать!',
-        subtitle: 'Интерактивный квиз',
-        background: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200'
+        id: 'r1',
+        name: 'Раунд 1',
+        type: 'classic',
+        questions: [
+            {
+                id: 'q1',
+                text: 'Именно с этого вокзала едет в Петушки главный герой поэмы Венедикта Ерофеева.',
+                options: [
+                    { id: 'o1', text: 'Курский вокзал', letter: 'A' },
+                    { id: 'o2', text: 'Ярославский вокзал', letter: 'B' },
+                    { id: 'o3', text: 'Павелецкий вокзал', letter: 'C' },
+                    { id: 'o4', text: 'Белорусский вокзал', letter: 'D' }
+                ],
+                correctOptionId: 'o4',
+                points: 500,
+                answered: true,
+                timer: 30,
+                media: null,
+                hint: null
+            }
+        ]
     },
     {
-        type: 'question',
-        question: 'Кто исполняет эту песню?',
-        options: ['Ed Sheeran', 'Bruno Mars', 'The Weeknd', 'Sam Smith'],
-        correct: 1,
-        timer: 25,
-        audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-        image: 'https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800'
-    },
-    {
-        type: 'question',
-        question: 'Какая планета самая большая?',
-        options: ['Венера', 'Юпитер', 'Сатурн', 'Марс'],
-        correct: 1,
-        timer: 20,
-        image: 'https://images.unsplash.com/photo-1614732414444-096e5f1122c5?w=800'
-    },
-    {
-        type: 'question',
-        question: 'Сколько спутников у Марса?',
-        options: ['1', '2', '3', '4'],
-        correct: 1,
-        timer: 15,
-        image: 'https://images.unsplash.com/photo-1614728894747-a83421e2b9c9?w=800'
-    },
-    {
-        type: 'podium',
-        title: '🏆 Итоги игры'
+        id: 'r2',
+        name: 'Раунд 2',
+        type: 'abcd',
+        questions: [
+            {
+                id: 'q2',
+                text: 'Завершившая в 2020 году карьеру Мария Шарапова успела стать обладательницей стольких титулов международной теннисной ассоциации',
+                options: [
+                    { id: 'o5', text: '51', letter: 'A' },
+                    { id: 'o6', text: '39', letter: 'B' },
+                    { id: 'o7', text: '36', letter: 'C' },
+                    { id: 'o8', text: '24', letter: 'D' }
+                ],
+                correctOptionId: 'o7',
+                points: 600,
+                answered: false,
+                timer: 30
+            },
+            {
+                id: 'q3',
+                text: 'Чарли Лайн собрал на Кикстартере почти 4 тысячи фунтов для того, чтобы заставить британских цензоров делать это.',
+                options: [
+                    { id: 'o9', text: 'Узнать, почем фунт лиха', letter: 'A' },
+                    { id: 'o10', text: 'Считать цыплят по осени', letter: 'B' },
+                    { id: 'o11', text: 'Смотреть, как сохнет краска', letter: 'C' },
+                    { id: 'o12', text: 'Сидеть и ждать у моря погоды', letter: 'D' }
+                ],
+                correctOptionId: 'o11',
+                points: 700,
+                answered: false,
+                timer: 30
+            },
+            {
+                id: 'q4',
+                text: 'Все эти актеры — гордость Австралии. А чье место рождения на самом деле — США?',
+                options: [
+                    { id: 'o13', text: 'Марго Робби', letter: 'A' },
+                    { id: 'o14', text: 'Николь Кидман', letter: 'B' },
+                    { id: 'o15', text: 'Хью Джекман', letter: 'C' },
+                    { id: 'o16', text: 'Крис Хемсворт', letter: 'D' }
+                ],
+                correctOptionId: 'o14',
+                points: 800,
+                answered: false,
+                timer: 30
+            },
+            {
+                id: 'q5',
+                text: 'Какая голливудская знаменитость упоминается самой первой в хите Мадонны "Vogue"?',
+                options: [
+                    { id: 'o17', text: 'Джин Харлоу', letter: 'A' },
+                    { id: 'o18', text: 'Марлен Дитрих', letter: 'B' },
+                    { id: 'o19', text: 'Джеймс Дин', letter: 'C' },
+                    { id: 'o20', text: 'Грета Гарбо', letter: 'D' }
+                ],
+                correctOptionId: 'o20',
+                points: 1100,
+                answered: false,
+                timer: 30
+            }
+        ]
     }
 ];
 
-// Middleware для логирования запросов (для отладки)
-app.use((req, res, next) => {
-    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
-    next();
-});
-
-// Статические файлы - ВАЖНО: правильный путь
+app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // API endpoints
-app.get('/api/pin', (req, res) => {
-    res.json({ pin: gameState.pin });
-});
-
-app.get('/api/health', (req, res) => {
-    res.json({ 
-        status: 'ok', 
-        time: new Date().toISOString(),
+app.get('/api/game/state', (req, res) => {
+    res.json({
         pin: gameState.pin,
-        participants: participants.length
+        code: gameState.code,
+        teams: teams.map(t => ({ id: t.id, name: t.name, score: t.score, isActive: t.isActive })),
+        rounds: rounds,
+        currentRound: gameState.currentRound,
+        currentQuestionId: gameState.currentQuestionId,
+        timerActive: gameState.timerActive,
+        timerDuration: gameState.timerDuration,
+        showOptions: gameState.showOptions,
+        answeredCount: gameState.answers.size,
+        totalTeams: teams.length
     });
 });
 
-// Обработка корневого пути - редирект на host.html
-app.get('/', (req, res) => {
-    res.redirect('/host.html');
+app.post('/api/game/join', (req, res) => {
+    const { code, teamName } = req.body;
+
+    if (code !== gameState.code) {
+        return res.status(400).json({ error: 'Неверный код игры' });
+    }
+
+    const newTeam = {
+        id: uuidv4(),
+        name: teamName || 'Новая команда',
+        score: 0,
+        answers: [],
+        isActive: true
+    };
+
+    teams.push(newTeam);
+
+    broadcast({
+        type: 'team_joined',
+        team: { id: newTeam.id, name: newTeam.name, score: newTeam.score }
+    });
+
+    res.json({ success: true, teamId: newTeam.id });
 });
 
-app.post('/api/start', (req, res) => {
-    gameState.active = true;
-    gameState.currentSlide = 0;
+app.post('/api/game/start-timer', (req, res) => {
+    const currentQuestion = getCurrentQuestion();
+
+    gameState.timerActive = true;
+    gameState.timerEndTime = Date.now() + (currentQuestion.timer * 1000);
+    gameState.showOptions = true;
+    gameState.startTime = Date.now();
+    gameState.correctAnswerRevealed = false;
+    gameState.answers.clear();
+    gameState.answeredCount = 0;
+
+    startTimer();
+
+    broadcast({
+        type: 'timer_started',
+        timeLeft: currentQuestion.timer,
+        questionId: gameState.currentQuestionId
+    });
+
+    res.json({ success: true });
+});
+
+function startTimer() {
+    const timerInterval = setInterval(() => {
+        const timeLeft = Math.max(0, Math.ceil((gameState.timerEndTime - Date.now()) / 1000));
+
+        broadcast({
+            type: 'timer_update',
+            timeLeft: timeLeft
+        });
+
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            gameState.timerActive = false;
+
+            broadcast({
+                type: 'timer_finished'
+            });
+        }
+    }, 1000);
+}
+
+app.post('/api/game/submit-answer', (req, res) => {
+    const { teamId, optionId } = req.body;
+    const team = teams.find(t => t.id === teamId);
+    const currentQuestion = getCurrentQuestion();
+
+    if (!team || !currentQuestion || !gameState.timerActive || gameState.answers.has(teamId)) {
+        return res.json({ success: false });
+    }
+
+    const isCorrect = optionId === currentQuestion.correctOptionId;
+    const responseTime = gameState.startTime ? (Date.now() - gameState.startTime) / 1000 : 0;
+
+    // Расчет очков (чем быстрее, тем больше)
+    let pointsEarned = 0;
+    if (isCorrect) {
+        const maxPoints = currentQuestion.points;
+        const timeRatio = Math.max(0, 1 - (responseTime / currentQuestion.timer));
+        pointsEarned = Math.round(maxPoints * (0.5 + timeRatio * 0.5));
+        team.score += pointsEarned;
+    }
+
+    gameState.answers.set(teamId, {
+        optionId,
+        isCorrect,
+        responseTime,
+        pointsEarned
+    });
+
+    gameState.answeredCount = gameState.answers.size;
+
+    broadcast({
+        type: 'answer_submitted',
+        teamId,
+        teamName: team.name,
+        optionId,
+        isCorrect,
+        pointsEarned,
+        answeredCount: gameState.answeredCount,
+        totalTeams: teams.length
+    });
+
+    res.json({
+        success: true,
+        isCorrect,
+        pointsEarned,
+        correctOptionId: currentQuestion.correctOptionId
+    });
+});
+
+app.post('/api/game/show-answer', (req, res) => {
+    gameState.correctAnswerRevealed = true;
+    const currentQuestion = getCurrentQuestion();
+
+    // Отмечаем вопрос как отвеченный
+    currentQuestion.answered = true;
+
+    broadcast({
+        type: 'show_answer',
+        correctOptionId: currentQuestion.correctOptionId,
+        correctText: currentQuestion.options.find(o => o.id === currentQuestion.correctOptionId).text
+    });
+
+    res.json({ success: true });
+});
+
+app.post('/api/game/hide-question', (req, res) => {
+    gameState.showOptions = false;
+    gameState.timerActive = false;
+
+    broadcast({
+        type: 'hide_question'
+    });
+
+    res.json({ success: true });
+});
+
+app.post('/api/game/next-question', (req, res) => {
+    const currentRound = rounds.find(r => r.id === `r${gameState.currentRound}`);
+    const currentIndex = currentRound.questions.findIndex(q => q.id === gameState.currentQuestionId);
+
+    if (currentIndex < currentRound.questions.length - 1) {
+        // Следующий вопрос в этом же раунде
+        gameState.currentQuestionId = currentRound.questions[currentIndex + 1].id;
+    } else if (gameState.currentRound < rounds.length) {
+        // Переход к следующему раунду
+        gameState.currentRound++;
+        const nextRound = rounds.find(r => r.id === `r${gameState.currentRound}`);
+        if (nextRound && nextRound.questions.length > 0) {
+            gameState.currentQuestionId = nextRound.questions[0].id;
+        }
+    }
+
     gameState.showOptions = false;
     gameState.timerActive = false;
     gameState.correctAnswerRevealed = false;
     gameState.answers.clear();
     gameState.answeredCount = 0;
-    
+
     broadcast({
-        type: 'game_started',
-        slide: questions[0]
+        type: 'next_question',
+        question: getCurrentQuestion(),
+        round: gameState.currentRound
     });
-    
+
     res.json({ success: true });
 });
 
-app.post('/api/next', (req, res) => {
-    if (gameState.currentSlide < questions.length - 1) {
-        gameState.currentSlide++;
-        gameState.showOptions = false;
-        gameState.timerActive = false;
-        gameState.correctAnswerRevealed = false;
-        gameState.answers.clear();
-        gameState.answeredCount = 0;
-        
+app.post('/api/game/update-score', (req, res) => {
+    const { teamId, newScore } = req.body;
+    const team = teams.find(t => t.id === teamId);
+
+    if (team) {
+        team.score = newScore;
+
         broadcast({
-            type: 'slide_changed',
-            slide: questions[gameState.currentSlide]
+            type: 'score_updated',
+            teamId,
+            newScore
         });
     }
+
     res.json({ success: true });
 });
 
-app.post('/api/show-options', (req, res) => {
-    const currentQuestion = questions[gameState.currentSlide];
-    
-    if (currentQuestion.type === 'question') {
-        gameState.showOptions = true;
-        gameState.timerActive = true;
-        gameState.timerDuration = currentQuestion.timer;
-        gameState.timerEndTime = Date.now() + (currentQuestion.timer * 1000);
-        gameState.questionStartTime = Date.now();
-        gameState.correctAnswerRevealed = false;
-        gameState.answers.clear();
-        gameState.answeredCount = 0;
-        
-        startTimer();
-        
-        broadcast({
-            type: 'show_options',
-            timer: currentQuestion.timer
-        });
-    }
-    
-    res.json({ success: true });
-});
+app.post('/api/game/add-team', (req, res) => {
+    const { teamName } = req.body;
 
-function calculateScore(responseTime, maxTime, basePoints = 1000) {
-    const timeRatio = Math.max(0, 1 - (responseTime / (maxTime * 1000)));
-    return Math.round(basePoints * (0.5 + timeRatio * 0.5));
-}
+    const newTeam = {
+        id: uuidv4(),
+        name: teamName || 'Новая команда',
+        score: 0,
+        answers: [],
+        isActive: true
+    };
 
-function startTimer() {
-    const timerInterval = setInterval(() => {
-        const timeLeft = Math.max(0, Math.ceil((gameState.timerEndTime - Date.now()) / 1000));
-        
-        broadcast({
-            type: 'timer_update',
-            timeLeft: timeLeft
-        });
-        
-        if (timeLeft <= 0) {
-            clearInterval(timerInterval);
-            gameState.timerActive = false;
-            gameState.correctAnswerRevealed = true;
-            
-            const currentQuestion = questions[gameState.currentSlide];
-            
-            broadcast({
-                type: 'show_results',
-                correctIndex: currentQuestion.correct,
-                correctText: currentQuestion.options[currentQuestion.correct]
-            });
-            
-            participants.forEach(participant => {
-                const answer = gameState.answers.get(participant.id);
-                let pointsEarned = 0;
-                
-                if (answer && answer.isCorrect) {
-                    pointsEarned = calculateScore(answer.responseTime, currentQuestion.timer);
-                    participant.score += pointsEarned;
-                }
-                
-                if (participant.ws && participant.ws.readyState === WebSocket.OPEN) {
-                    participant.ws.send(JSON.stringify({
-                        type: 'your_result',
-                        correct: answer ? answer.isCorrect : false,
-                        correctAnswer: currentQuestion.options[currentQuestion.correct],
-                        pointsEarned: pointsEarned,
-                        totalScore: participant.score
-                    }));
-                }
-            });
-            
-            broadcastLeaderboard();
-        }
-    }, 1000);
-}
+    teams.push(newTeam);
 
-app.post('/api/reset', (req, res) => {
-    gameState.active = false;
-    gameState.currentSlide = 0;
-    gameState.showOptions = false;
-    gameState.timerActive = false;
-    gameState.correctAnswerRevealed = false;
-    gameState.answers.clear();
-    participants = [];
-    broadcast({ type: 'game_reset' });
-    res.json({ success: true });
-});
-
-// WebSocket
-wss.on('connection', (ws) => {
-    console.log('Новое WebSocket подключение');
-    
-    ws.on('message', (message) => {
-        try {
-            const data = JSON.parse(message);
-            
-            switch(data.type) {
-                case 'join':
-                    if (data.pin === gameState.pin) {
-                        const participant = {
-                            id: Date.now().toString() + Math.random(),
-                            name: data.name || 'Игрок',
-                            score: 0,
-                            answers: [],
-                            ws: ws
-                        };
-                        
-                        participants.push(participant);
-                        ws.participantId = participant.id;
-                        
-                        ws.send(JSON.stringify({
-                            type: 'joined',
-                            success: true,
-                            participantId: participant.id
-                        }));
-                        
-                        ws.send(JSON.stringify({
-                            type: 'current_slide',
-                            slide: questions[gameState.currentSlide],
-                            showOptions: gameState.showOptions,
-                            timerActive: gameState.timerActive,
-                            timeLeft: gameState.timerActive ? Math.max(0, Math.ceil((gameState.timerEndTime - Date.now()) / 1000)) : 0
-                        }));
-                        
-                        broadcastParticipants();
-                    } else {
-                        ws.send(JSON.stringify({
-                            type: 'joined',
-                            success: false,
-                            error: 'Неверный ПИН-код'
-                        }));
-                    }
-                    break;
-                    
-                case 'answer':
-                    const participant = participants.find(p => p.id === ws.participantId);
-                    if (participant && gameState.timerActive && !gameState.correctAnswerRevealed) {
-                        const currentQuestion = questions[gameState.currentSlide];
-                        
-                        if (!gameState.answers.has(participant.id)) {
-                            const responseTime = (Date.now() - gameState.questionStartTime) / 1000;
-                            const isCorrect = data.answer === currentQuestion.correct;
-                            
-                            gameState.answers.set(participant.id, {
-                                answerIndex: data.answer,
-                                isCorrect: isCorrect,
-                                responseTime: responseTime
-                            });
-                            
-                            if (isCorrect) {
-                                participant.answers.push({
-                                    questionIndex: gameState.currentSlide,
-                                    correct: true,
-                                    responseTime: responseTime
-                                });
-                            }
-                            
-                            gameState.answeredCount = gameState.answers.size;
-                            
-                            ws.send(JSON.stringify({
-                                type: 'answer_accepted'
-                            }));
-                            
-                            broadcast({
-                                type: 'answered_count',
-                                count: gameState.answeredCount,
-                                total: participants.length
-                            });
-                        }
-                    }
-                    break;
-            }
-        } catch (e) {
-            console.error('Ошибка обработки сообщения:', e);
-        }
+    broadcast({
+        type: 'team_added',
+        team: { id: newTeam.id, name: newTeam.name, score: newTeam.score }
     });
-    
-    ws.on('close', () => {
-        participants = participants.filter(p => p.ws !== ws);
-        broadcastParticipants();
-    });
+
+    res.json({ success: true, teamId: newTeam.id });
 });
+
+app.post('/api/game/remove-team', (req, res) => {
+    const { teamId } = req.body;
+
+    teams = teams.filter(t => t.id !== teamId);
+
+    broadcast({
+        type: 'team_removed',
+        teamId
+    });
+
+    res.json({ success: true });
+});
+
+app.post('/api/game/reset', (req, res) => {
+    gameState = {
+        ...gameState,
+        currentRound: 1,
+        currentQuestionId: 'q1',
+        showOptions: false,
+        timerActive: false,
+        correctAnswerRevealed: false,
+        answers: new Map(),
+        answeredCount: 0
+    };
+
+    teams = teams.map(t => ({ ...t, score: 0, answers: [] }));
+
+    rounds.forEach(round => {
+        round.questions.forEach(q => {
+            q.answered = false;
+        });
+    });
+
+    broadcast({
+        type: 'game_reset'
+    });
+
+    res.json({ success: true });
+});
+
+function getCurrentQuestion() {
+    const currentRound = rounds.find(r => r.id === `r${gameState.currentRound}`);
+    return currentRound?.questions.find(q => q.id === gameState.currentQuestionId);
+}
 
 function broadcast(data) {
     wss.clients.forEach(client => {
@@ -316,38 +405,41 @@ function broadcast(data) {
     });
 }
 
-function broadcastParticipants() {
-    const participantList = participants.map(p => ({
-        id: p.id,
-        name: p.name,
-        score: p.score
-    }));
-    
-    broadcast({
-        type: 'participants',
-        participants: participantList
-    });
-}
+// WebSocket для реального времени
+wss.on('connection', (ws) => {
+    console.log('Новое WebSocket подключение');
 
-function broadcastLeaderboard() {
-    const leaderboard = [...participants]
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 5)
-        .map(p => ({ name: p.name, score: p.score }));
-    
-    broadcast({
-        type: 'leaderboard',
-        leaderboard
+    ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message);
+
+            switch (data.type) {
+                case 'join_as_host':
+                    ws.role = 'host';
+                    break;
+
+                case 'join_as_projector':
+                    ws.role = 'projector';
+                    break;
+
+                case 'join_as_player':
+                    ws.role = 'player';
+                    ws.teamId = data.teamId;
+                    break;
+            }
+        } catch (e) {
+            console.error('Ошибка обработки сообщения:', e);
+        }
     });
-}
+});
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-    console.log('\n=== 🚀 СЕРВЕР ЗАПУЩЕН ===');
-    console.log(`📱 Порт: ${PORT}`);
-    console.log(`📁 Public path: ${path.join(__dirname, 'public')}`);
+    console.log('\n=== 🚀 КВИЗЛИ КЛОН ЗАПУЩЕН ===');
+    console.log(`📌 Локальный: http://localhost:${PORT}`);
     console.log(`👤 Ведущий: http://localhost:${PORT}/host.html`);
+    console.log(`📺 Проектор: http://localhost:${PORT}/projector.html`);
     console.log(`📱 Участник: http://localhost:${PORT}/join.html`);
-    console.log(`🔑 PIN код: ${gameState.pin}`);
-    console.log('========================\n');
+    console.log(`🔑 Код игры: ${gameState.code}`);
+    console.log('===============================\n');
 });

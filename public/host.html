@@ -1,639 +1,1143 @@
 <!DOCTYPE html>
 <html lang="ru">
-
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
-    <title>Kahoot Pro - Ведущий</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Управление игрой | Квизли</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Poppins', sans-serif;
         }
 
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
+            font-family: 'Inter', sans-serif;
+            background-color: #f5f7fb;
+            color: #1e293b;
         }
 
-        .container {
-            width: 100%;
-            max-width: 1600px;
-            margin: 0 auto;
-        }
-
-        /* Адаптивные размеры */
-        :root {
-            --scale-factor: min(1, calc(100vw / 1920));
-        }
-
-        /* Экран лобби */
-        .lobby {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: clamp(20px, 4vw, 60px);
-            padding: clamp(15px, 3vw, 50px);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .header {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: clamp(15px, 2.5vw, 30px);
-            border-radius: clamp(20px, 3vw, 40px);
-            margin-bottom: clamp(20px, 3vw, 50px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .qr-section {
-            display: flex;
-            align-items: center;
-            gap: clamp(10px, 2vw, 30px);
-            flex-wrap: wrap;
-        }
-
-        .qr-code {
-            width: clamp(60px, 8vw, 120px);
-            height: clamp(60px, 8vw, 120px);
+        /* Шапка */
+        .navbar {
             background: white;
-            border-radius: clamp(15px, 2vw, 30px);
+            border-bottom: 2px solid #e9ecef;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            color: #fd5b01;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 32px;
+        }
+
+        .nav-link {
+            color: #64748b;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 15px;
+            transition: color 0.2s;
+        }
+
+        .nav-link:hover {
+            color: #fd5b01;
+        }
+
+        .nav-link.active {
+            color: #fd5b01;
+            position: relative;
+        }
+
+        .nav-link.active::after {
+            content: '';
+            position: absolute;
+            bottom: -16px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #fd5b01;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .plan-badge {
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #475569;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #fd5b01;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        /* Контейнер */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Хлебные крошки */
+        .breadcrumbs {
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .breadcrumbs a {
+            color: #fd5b01;
+            text-decoration: none;
+        }
+
+        .breadcrumbs span {
+            color: #94a3b8;
+        }
+
+        /* Основной макет */
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+        }
+
+        /* Левая колонка */
+        .left-column {
             display: flex;
             flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Карточки */
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e9ecef;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        /* Код подключения */
+        .connection-code {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .code-info {
+            flex: 1;
+        }
+
+        .code-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .code-value {
+            font-size: 36px;
+            font-weight: 700;
+            font-family: monospace;
+            color: #0f172a;
+            letter-spacing: 4px;
+        }
+
+        .connected-count {
+            color: #10b981;
+            font-size: 14px;
+            margin-top: 4px;
+        }
+
+        .qr-button {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            color: #475569;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .qr-button:hover {
+            border-color: #fd5b01;
+            color: #fd5b01;
+        }
+
+        /* Настройки раунда */
+        .round-settings {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .settings-badge {
+            display: inline-flex;
+            align-items: center;
+            background: #e9ecef;
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-size: 13px;
+            margin-right: 8px;
+            margin-bottom: 8px;
+        }
+
+        .settings-badge i {
+            margin-right: 6px;
+            color: #64748b;
+        }
+
+        .edit-settings {
+            float: right;
+            color: #fd5b01;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Список вопросов */
+        .questions-list {
+            margin-top: 16px;
+        }
+
+        .question-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border: 1px solid transparent;
+        }
+
+        .question-item:hover {
+            background: #f8fafc;
+        }
+
+        .question-item.active {
+            background: #fff7ed;
+            border-color: #fed7aa;
+        }
+
+        .question-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            font-weight: 600;
+            font-size: 14px;
+            margin-right: 12px;
         }
 
-        .qr-code i {
-            font-size: clamp(30px, 4vw, 60px);
-            color: #764ba2;
+        .question-info {
+            flex: 1;
         }
 
-        .qr-code span {
-            color: #764ba2;
-            font-weight: bold;
-            font-size: clamp(10px, 1.2vw, 14px);
-        }
-
-        .join-link {
-            background: rgba(255, 255, 255, 0.2);
-            padding: clamp(10px, 1.5vw, 15px) clamp(15px, 2vw, 30px);
-            border-radius: 40px;
-            font-size: clamp(14px, 1.5vw, 1.3rem);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
+        .question-text-preview {
+            font-weight: 500;
+            margin-bottom: 4px;
             white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 400px;
         }
 
-        .game-pin {
-            text-align: center;
-        }
-
-        .pin-label {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: clamp(12px, 1.2vw, 1.2rem);
-            text-transform: uppercase;
-            letter-spacing: 2px;
-        }
-
-        .pin-number {
-            font-size: clamp(2rem, 6vw, 5rem);
-            font-weight: 800;
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
-            line-height: 1.2;
-        }
-
-        .players-panel {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: clamp(20px, 3vw, 40px);
-            padding: clamp(20px, 3vw, 40px);
-            margin-bottom: clamp(20px, 3vw, 40px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .players-title {
-            font-size: clamp(1.2rem, 2.5vw, 2rem);
-            color: white;
-            margin-bottom: clamp(15px, 2vw, 30px);
+        .question-meta {
             display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            gap: 12px;
+            font-size: 12px;
+            color: #64748b;
         }
 
-        .players-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: clamp(8px, 1.5vw, 15px);
-            max-height: 300px;
-            overflow-y: auto;
-            padding: 5px;
+        .question-points {
+            color: #10b981;
+            font-weight: 600;
         }
 
-        .player-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: clamp(8px, 1.2vw, 15px) clamp(15px, 2vw, 30px);
-            border-radius: 40px;
-            font-size: clamp(12px, 1.3vw, 1.2rem);
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        .question-status {
             display: flex;
             align-items: center;
             gap: 8px;
-            white-space: nowrap;
         }
 
-        .player-score {
-            background: rgba(255, 215, 0, 0.3);
-            padding: 3px 12px;
-            border-radius: 30px;
-            font-weight: 600;
-            font-size: 0.9em;
+        .status-badge {
+            background: #e9ecef;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
         }
 
-        .start-btn {
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            border: none;
-            padding: clamp(15px, 2.5vw, 25px) clamp(40px, 6vw, 80px);
-            border-radius: 60px;
-            font-size: clamp(1.5rem, 4vw, 2.5rem);
-            font-weight: 800;
+        .status-badge.answered {
+            background: #10b981;
             color: white;
-            cursor: pointer;
-            box-shadow: 0 10px 0 #b45f06, 0 20px 30px rgba(0, 0, 0, 0.3);
-            margin: 10px auto 0;
-            display: block;
-            transition: all 0.1s;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            width: fit-content;
         }
 
-        .start-btn:active {
-            transform: translateY(5px);
-            box-shadow: 0 5px 0 #b45f06, 0 20px 30px rgba(0, 0, 0, 0.3);
+        /* Текущий вопрос */
+        .current-question {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
         }
 
-        /* Экран игры */
-        .game-screen {
-            display: none;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border-radius: clamp(20px, 4vw, 60px);
-            padding: clamp(15px, 3vw, 40px);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .game-screen.active {
-            display: block;
-        }
-
-        .game-header {
+        .question-header {
             display: flex;
-            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: 10px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: clamp(10px, 2vw, 20px) clamp(15px, 3vw, 40px);
-            border-radius: 40px;
-            margin-bottom: clamp(15px, 2.5vw, 30px);
-            color: white;
+            margin-bottom: 16px;
         }
 
-        .timer-circle {
-            width: clamp(60px, 8vw, 100px);
-            height: clamp(60px, 8vw, 100px);
-            background: linear-gradient(135deg, #ff4d4d, #ff0000);
-            border-radius: 50%;
+        .question-title {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .question-actions {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: clamp(1.8rem, 4vw, 3rem);
-            font-weight: 800;
-            border: 4px solid white;
-            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+            gap: 8px;
         }
 
-        .answered-count {
-            background: rgba(255, 255, 255, 0.2);
-            padding: clamp(8px, 1.5vw, 15px) clamp(15px, 2.5vw, 30px);
-            border-radius: 40px;
-            font-size: clamp(14px, 1.8vw, 1.5rem);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            white-space: nowrap;
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid #e2e8f0;
+            background: white;
+            color: #475569;
         }
 
-        .slide-content {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: clamp(20px, 3vw, 40px);
-            padding: clamp(15px, 3vw, 50px);
-            margin: clamp(15px, 2vw, 30px) 0;
-            color: white;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            max-height: 60vh;
-            overflow-y: auto;
+        .btn:hover {
+            border-color: #fd5b01;
+            color: #fd5b01;
         }
 
-        .welcome-title {
-            font-size: clamp(2rem, 6vw, 5rem);
-            text-align: center;
-            color: #ffd700;
-            margin-bottom: 15px;
-            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-            line-height: 1.2;
-        }
-
-        .welcome-subtitle {
-            font-size: clamp(1.2rem, 3vw, 2rem);
-            text-align: center;
+        .btn-primary {
+            background: #fd5b01;
+            border-color: #fd5b01;
             color: white;
         }
 
-        .question-text {
-            font-size: clamp(1.5rem, 4vw, 3rem);
-            margin-bottom: 20px;
-            text-align: center;
-            font-weight: 700;
-            line-height: 1.3;
+        .btn-primary:hover {
+            background: #e64e00;
+            border-color: #e64e00;
+            color: white;
         }
 
-        .media-container {
-            max-width: min(800px, 90%);
-            margin: 0 auto 20px;
-            border-radius: 30px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
         }
 
-        .media-container img,
-        .media-container video {
-            width: 100%;
-            max-height: 300px;
-            object-fit: cover;
+        .btn-outline {
+            background: transparent;
+            border: 1px solid #fd5b01;
+            color: #fd5b01;
         }
 
-        .audio-player {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: 60px;
-            margin: 20px 0;
-        }
-
-        .audio-player audio {
-            width: 100%;
+        .btn-outline:hover {
+            background: #fff7ed;
         }
 
         .options-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
-            gap: clamp(10px, 2vw, 20px);
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
             margin: 20px 0;
         }
 
         .option-card {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            padding: clamp(15px, 2.5vw, 30px);
-            border-radius: 40px;
-            font-size: clamp(1rem, 2.5vw, 2rem);
-            text-align: center;
-            color: white;
-            border: 3px solid rgba(255, 255, 255, 0.5);
-            transition: all 0.3s;
-            font-weight: 600;
-            box-shadow: 0 5px 0 #4a2b9c;
-            word-break: break-word;
-        }
-
-        .option-card.correct-highlight {
-            background: linear-gradient(135deg, #00b09b, #96c93d);
-            transform: scale(1.02);
-            box-shadow: 0 0 30px #00ff00;
-            border-color: white;
-        }
-
-        .controls {
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+
+        .option-card.correct {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+
+        .option-letter {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            margin-right: 12px;
+        }
+
+        .option-letter.correct {
+            background: #10b981;
+            color: white;
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 15px;
+        }
+
+        .question-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .answered-info {
+            color: #10b981;
+            font-size: 14px;
+        }
+
+        .timer-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #ef4444;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        /* Правая колонка */
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Список команд */
+        .teams-list {
+            margin-top: 16px;
+        }
+
+        .team-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .team-item:last-child {
+            border-bottom: none;
+        }
+
+        .team-name {
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .team-answer {
+            background: #f0fdf4;
+            color: #10b981;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .team-score {
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .team-score:hover {
+            background: #f1f5f9;
+        }
+
+        .add-team {
+            margin-top: 16px;
+            width: 100%;
+            padding: 10px;
+            background: #f8fafc;
+            border: 2px dashed #cbd5e1;
+            border-radius: 8px;
+            color: #64748b;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .add-team:hover {
+            border-color: #fd5b01;
+            color: #fd5b01;
+        }
+
+        /* Управление очками */
+        .scores-table {
+            width: 100%;
+            margin-top: 12px;
+        }
+
+        .score-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .score-row:last-child {
+            border-bottom: none;
+        }
+
+        .score-value {
+            font-weight: 700;
+            color: #0f172a;
+        }
+
+        .edit-score {
+            color: #64748b;
+            font-size: 12px;
+            margin-left: 8px;
+            cursor: pointer;
+        }
+
+        .transfer-info {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 12px;
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 24px;
+            width: 400px;
+            max-width: 90%;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        /* Утилиты */
+        .text-muted {
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        .flex {
+            display: flex;
+            gap: 8px;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .gap-2 {
+            gap: 12px;
+        }
+
+        .mt-4 {
             margin-top: 20px;
         }
 
-        .btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            padding: clamp(12px, 2vw, 20px) clamp(20px, 3vw, 40px);
-            border-radius: 60px;
-            font-size: clamp(14px, 2vw, 1.5rem);
-            color: white;
-            cursor: pointer;
-            border-bottom: 5px solid rgba(0, 0, 0, 0.3);
-            flex: 1 1 auto;
-            min-width: 200px;
-            font-weight: 600;
-            transition: all 0.1s;
-        }
-
-        .btn.primary {
-            background: linear-gradient(135deg, #ffd700, #ffa500);
-            border-bottom-color: #b45f06;
-        }
-
-        .btn:active {
-            transform: translateY(3px);
-            border-bottom-width: 2px;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        /* Скроллбар */
-        ::-webkit-scrollbar {
-            width: 10px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
-
-        @media (max-width: 768px) {
-            .options-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .header {
-                flex-direction: column;
-                text-align: center;
-            }
-
-            .qr-section {
-                justify-content: center;
-            }
-
-            .controls .btn {
-                min-width: 100%;
-            }
+        .mb-2 {
+            margin-bottom: 10px;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-
 <body>
+    <div class="navbar">
+        <div class="logo">КВИЗЛИ</div>
+        <div class="nav-links">
+            <a href="#" class="nav-link active">Мои игры</a>
+            <a href="#" class="nav-link">Библиотека игр</a>
+            <a href="#" class="nav-link">Тарифы</a>
+            <a href="#" class="nav-link">Помощь</a>
+        </div>
+        <div class="user-info">
+            <div class="plan-badge">
+                <i class="fas fa-crown" style="color: #fd5b01;"></i> Тариф «Бесплатный» · До 3 команд
+            </div>
+            <div class="avatar">Е</div>
+        </div>
+    </div>
+
     <div class="container">
-        <!-- Экран лобби -->
-        <div id="lobby" class="lobby">
-            <div class="header">
-                <div class="qr-section">
-                    <div class="qr-code">
-                        <i class="fas fa-qrcode"></i>
-                        <span>QR</span>
-                    </div>
-                    <div class="join-link" id="joinLink">
-                        <i class="fas fa-link"></i> Загрузка...
-                    </div>
-                </div>
-                <div class="game-pin">
-                    <div class="pin-label">PIN</div>
-                    <div class="pin-number" id="pinDisplay">0000</div>
-                </div>
-            </div>
-
-            <div class="players-panel">
-                <div class="players-title">
-                    <i class="fas fa-users"></i> Участники (<span id="onlineCount">0</span>)
-                </div>
-                <div class="players-grid" id="playersList">
-                    <div class="player-card">Ожидание игроков...</div>
-                </div>
-            </div>
-
-            <button class="start-btn" id="startGameBtn">
-                <i class="fas fa-play"></i> НАЧАТЬ
-            </button>
+        <div class="breadcrumbs">
+            <a href="#">Мои игры</a> • 
+            <a href="#">Квиз про все на свете №2</a> • 
+            <span>Запуск #2 (01.03 10:51)</span>
         </div>
 
-        <!-- Экран игры -->
-        <div id="gameScreen" class="game-screen">
-            <div class="game-header">
-                <span><i class="fas fa-crown" style="color: #ffd700;"></i> Ведущий</span>
-                <div class="timer-circle" id="timerDisplay">0</div>
-                <span class="answered-count" id="answeredDisplay">
-                    <i class="fas fa-check-circle"></i> 0 ответили
-                </span>
+        <div class="game-layout">
+            <!-- Левая колонка -->
+            <div class="left-column">
+                <!-- Код подключения -->
+                <div class="card">
+                    <div class="connection-code">
+                        <div class="code-info">
+                            <div class="code-label">Код подключения игроков</div>
+                            <div class="code-value" id="gameCode">EGA78</div>
+                            <div class="connected-count" id="connectedCount">
+                                <i class="fas fa-users"></i> Подключено команд: 1
+                            </div>
+                        </div>
+                        <div>
+                            <button class="qr-button" onclick="showQR()">
+                                <i class="fas fa-qrcode"></i> QR-код
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Настройки раунда -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Настройки раунда</h3>
+                        <span class="edit-settings" onclick="editRoundSettings()">
+                            <i class="fas fa-pen"></i> Изменить
+                        </span>
+                    </div>
+                    <div class="round-settings" id="roundSettings">
+                        <span class="settings-badge">
+                            <i class="fas fa-clock"></i> 30 секунд на вопрос
+                        </span>
+                        <span class="settings-badge">
+                            <i class="fas fa-ban"></i> Нельзя менять ответ
+                        </span>
+                    </div>
+
+                    <!-- Список вопросов -->
+                    <div class="card-header">
+                        <h3 class="card-title">Вопросы раунда 2 (ABCD)</h3>
+                    </div>
+                    <div class="questions-list" id="questionsList">
+                        <!-- Динамически заполняется -->
+                    </div>
+                </div>
+
+                <!-- Текущий вопрос -->
+                <div class="card" id="currentQuestionCard">
+                    <!-- Динамически заполняется -->
+                </div>
             </div>
 
-            <!-- Контент слайда -->
-            <div id="slideContent" class="slide-content">
-                <!-- Динамически заполняется -->
-            </div>
+            <!-- Правая колонка -->
+            <div class="right-column">
+                <!-- Команды и ответы -->
+                <div class="card">
+                    <h3 class="card-title">Команды</h3>
+                    <div class="teams-list" id="teamsList">
+                        <!-- Динамически заполняется -->
+                    </div>
+                    <button class="add-team" onclick="showAddTeamModal()">
+                        <i class="fas fa-plus"></i> Добавить команду
+                    </button>
+                </div>
 
-            <!-- Управление -->
-            <div class="controls">
-                <button class="btn" id="showOptionsBtn">
-                    <i class="fas fa-list"></i> ПОКАЗАТЬ ОТВЕТЫ
-                </button>
-                <button class="btn primary" id="nextBtn">
-                    <i class="fas fa-forward"></i> ДАЛЕЕ
-                </button>
+                <!-- Управление очками -->
+                <div class="card">
+                    <h3 class="card-title">Управление игроками</h3>
+                    <p class="text-muted">Кликните на очки для редактирования</p>
+                    
+                    <div class="scores-table" id="scoresTable">
+                        <!-- Динамически заполняется -->
+                    </div>
+
+                    <div class="mt-4">
+                        <button class="btn btn-outline btn-sm" onclick="showTransferModal()">
+                            <i class="fas fa-exchange-alt"></i> Перебросить очки и удалить команду
+                        </button>
+                        <p class="transfer-info">На случай если команда зашла с нового телефона</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно добавления команды -->
+    <div class="modal" id="addTeamModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Добавить команду</h3>
+            <input type="text" class="modal-input" id="newTeamName" placeholder="Название команды">
+            <div class="modal-actions">
+                <button class="btn" onclick="hideModal('addTeamModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="addTeam()">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно редактирования очков -->
+    <div class="modal" id="editScoreModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Редактировать очки</h3>
+            <input type="text" class="modal-input" id="editTeamName" readonly>
+            <input type="number" class="modal-input" id="editScoreValue" value="0">
+            <div class="modal-actions">
+                <button class="btn" onclick="hideModal('editScoreModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="saveScore()">Сохранить</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно переброса очков -->
+    <div class="modal" id="transferModal">
+        <div class="modal-content">
+            <h3 class="modal-title">Переброс очков</h3>
+            <p class="text-muted">Какую команду удаляем?</p>
+            <select class="modal-input" id="removeTeamSelect"></select>
+            <p class="text-muted">Какой команде перебрасываем очки?</p>
+            <select class="modal-input" id="giveTeamSelect"></select>
+            <div class="modal-actions">
+                <button class="btn" onclick="hideModal('transferModal')">Отмена</button>
+                <button class="btn btn-primary" onclick="transferScores()">Перебросить</button>
             </div>
         </div>
     </div>
 
     <script>
+        let teams = [];
+        let rounds = [];
+        let currentQuestion = null;
+        let currentRound = 1;
+        let currentQuestionId = 'q1';
+        let answers = new Map();
+        let editingTeamId = null;
         let ws;
-        let currentSlideIndex = 0;
 
-        // Получаем PIN и IP
-        Promise.all([
-            fetch('/api/pin').then(res => res.json()),
-            fetch('/api/ip').then(res => res.json())
-        ]).then(([pinData, ipData]) => {
-            document.getElementById('pinDisplay').textContent = pinData.pin;
-            document.getElementById('joinLink').innerHTML = `<i class="fas fa-link"></i> ${ipData.ip}:${ipData.port}/join.html`;
-        });
-
+        // WebSocket подключение
         function connectWebSocket() {
-            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${protocol}//${window.location.host}`;
-            ws = new WebSocket(wsUrl);
-
+            ws = new WebSocket(`ws://${window.location.host}`);
+            
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-
-                switch (data.type) {
-                    case 'participants':
-                        updateParticipants(data.participants);
+                
+                switch(data.type) {
+                    case 'team_joined':
+                    case 'team_added':
+                        teams.push(data.team);
+                        renderTeams();
+                        renderScores();
+                        updateConnectedCount();
                         break;
-
-                    case 'game_started':
-                    case 'slide_changed':
-                        document.getElementById('lobby').style.display = 'none';
-                        document.getElementById('gameScreen').classList.add('active');
-                        renderSlide(data.slide);
+                        
+                    case 'team_removed':
+                        teams = teams.filter(t => t.id !== data.teamId);
+                        renderTeams();
+                        renderScores();
+                        updateConnectedCount();
                         break;
-
-                    case 'show_options':
-                        document.getElementById('timerDisplay').textContent = data.timer;
-                        document.getElementById('showOptionsBtn').disabled = true;
+                        
+                    case 'answer_submitted':
+                        answers.set(data.teamId, {
+                            optionId: data.optionId,
+                            isCorrect: data.isCorrect
+                        });
+                        updateTeamAnswer(data.teamId, data.optionId);
+                        document.getElementById('answeredCount').textContent = 
+                            `${data.answeredCount}/${data.totalTeams}`;
+                        renderCurrentQuestion();
+                        renderTeams();
                         break;
-
+                        
                     case 'timer_update':
                         document.getElementById('timerDisplay').textContent = data.timeLeft;
                         break;
-
-                    case 'answered_count':
-                        document.getElementById('answeredDisplay').innerHTML =
-                            `<i class="fas fa-check-circle"></i> ${data.count}/${data.total} ответили`;
+                        
+                    case 'timer_started':
+                        gameState.timerActive = true;
+                        renderCurrentQuestion();
                         break;
-
-                    case 'show_results':
-                        highlightCorrectAnswer(data.correctIndex, data.correctText);
+                        
+                    case 'show_answer':
+                        showCorrectAnswer(data.correctOptionId);
+                        break;
+                        
+                    case 'next_question':
+                        currentQuestion = data.question;
+                        currentRound = data.round;
+                        answers.clear();
+                        loadState();
+                        break;
+                        
+                    case 'score_updated':
+                        const team = teams.find(t => t.id === data.teamId);
+                        if (team) {
+                            team.score = data.newScore;
+                            renderScores();
+                        }
                         break;
                 }
-            };
-
-            ws.onclose = () => {
-                console.log('Соединение потеряно, переподключение...');
-                setTimeout(connectWebSocket, 3000);
             };
         }
 
-        function renderSlide(slide) {
-            const content = document.getElementById('slideContent');
-            const showBtn = document.getElementById('showOptionsBtn');
-
-            showBtn.disabled = false;
-            document.getElementById('timerDisplay').textContent = '0';
-            document.getElementById('answeredDisplay').innerHTML = '<i class="fas fa-check-circle"></i> 0 ответили';
-
-            if (slide.type === 'welcome') {
-                content.innerHTML = `
-                    <div class="welcome-title">${slide.title}</div>
-                    <div class="welcome-subtitle">${slide.subtitle}</div>
-                `;
-                showBtn.style.display = 'none';
+        // Загрузка состояния
+        async function loadState() {
+            try {
+                const res = await fetch('/api/game/state');
+                const data = await res.json();
+                
+                teams = data.teams;
+                rounds = data.rounds;
+                currentRound = data.currentRound;
+                currentQuestionId = data.currentQuestionId;
+                gameState = {
+                    timerActive: data.timerActive,
+                    timerDuration: data.timerDuration,
+                    showOptions: data.showOptions,
+                    answeredCount: data.answeredCount
+                };
+                
+                document.getElementById('gameCode').textContent = data.code;
+                updateConnectedCount();
+                renderQuestions();
+                renderCurrentQuestion();
+                renderTeams();
+                renderScores();
+            } catch (e) {
+                console.error('Ошибка загрузки:', e);
             }
-            else if (slide.type === 'question') {
-                let mediaHtml = '';
+        }
 
-                if (slide.image) {
-                    mediaHtml = `
-                        <div class="media-container">
-                            <img src="${slide.image}" alt="question" loading="lazy">
+        function updateConnectedCount() {
+            document.getElementById('connectedCount').innerHTML = 
+                `<i class="fas fa-users"></i> Подключено команд: ${teams.length}`;
+        }
+
+        function renderQuestions() {
+            const currentRoundData = rounds.find(r => r.id === `r${currentRound}`);
+            if (!currentRoundData) return;
+            
+            const questionsList = document.getElementById('questionsList');
+            questionsList.innerHTML = currentRoundData.questions.map(q => `
+                <div class="question-item ${q.id === currentQuestionId ? 'active' : ''}" 
+                     onclick="selectQuestion('${q.id}')">
+                    <div class="question-number">${q.id.replace('q', '')}</div>
+                    <div class="question-info">
+                        <div class="question-text-preview">${q.text.substring(0, 50)}${q.text.length > 50 ? '...' : ''}</div>
+                        <div class="question-meta">
+                            <span class="question-points"><i class="fas fa-star"></i> ${q.points}</span>
+                            <span><i class="fas fa-clock"></i> ${q.timer} сек</span>
                         </div>
-                    `;
-                }
-
-                if (slide.video) {
-                    mediaHtml = `
-                        <div class="media-container">
-                            <video src="${slide.video}" controls autoplay loop playsinline></video>
-                        </div>
-                    `;
-                }
-
-                if (slide.audio) {
-                    mediaHtml = `
-                        <div class="audio-player">
-                            <audio src="${slide.audio}" controls autoplay></audio>
-                        </div>
-                    `;
-                }
-
-                let optionsHtml = '';
-                slide.options.forEach(opt => {
-                    optionsHtml += `<div class="option-card">${opt}</div>`;
-                });
-
-                content.innerHTML = `
-                    <div class="question-text">${slide.question}</div>
-                    ${mediaHtml}
-                    <div class="options-grid" id="optionsGrid">
-                        ${optionsHtml}
                     </div>
-                `;
-                showBtn.style.display = 'block';
-            }
+                    <div class="question-status">
+                        ${q.answered ? 
+                            '<span class="status-badge answered"><i class="fas fa-check"></i> Отвечен</span>' : 
+                            '<span class="status-badge"><i class="fas fa-hourglass-half"></i> Ожидает</span>'}
+                    </div>
+                </div>
+            `).join('');
         }
 
-        function highlightCorrectAnswer(index, text) {
-            const options = document.querySelectorAll('.option-card');
-            options.forEach((opt, i) => {
-                if (i === index) {
-                    opt.classList.add('correct-highlight');
+        function renderCurrentQuestion() {
+            const currentRoundData = rounds.find(r => r.id === `r${currentRound}`);
+            currentQuestion = currentRoundData?.questions.find(q => q.id === currentQuestionId);
+            
+            if (!currentQuestion) return;
+            
+            const card = document.getElementById('currentQuestionCard');
+            const answersCount = gameState?.answeredCount || 0;
+            
+            card.innerHTML = `
+                <div class="question-header">
+                    <h3 class="question-title">Вопрос ${currentQuestionId.replace('q', '')} · Очки: ${currentQuestion.points}</h3>
+                    <div class="question-actions">
+                        <button class="btn btn-sm" onclick="showAnswer()">
+                            <i class="fas fa-check-circle"></i> Показать ответ
+                        </button>
+                        <button class="btn btn-sm" onclick="hideQuestion()">
+                            <i class="fas fa-eye-slash"></i> Скрыть вопрос
+                        </button>
+                    </div>
+                </div>
+                
+                <p style="margin-bottom: 20px; font-size: 16px;">${currentQuestion.text}</p>
+                
+                <div class="options-grid" id="optionsGrid">
+                    ${currentQuestion.options.map(opt => `
+                        <div class="option-card" data-option-id="${opt.id}">
+                            <div class="option-letter">${opt.letter}</div>
+                            <div class="option-text">${opt.text}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div class="question-footer">
+                    <div class="answered-info">
+                        <i class="fas fa-check-circle"></i> 
+                        <span id="answeredCount">${answersCount}/${teams.length}</span> ответов
+                    </div>
+                    <div class="timer-info">
+                        <i class="fas fa-clock"></i>
+                        <span id="timerDisplay">${gameState?.timerDuration || 30}</span> сек
+                    </div>
+                </div>
+                
+                <div style="margin-top: 16px;">
+                    <button class="btn btn-primary" onclick="startTimer()" ${gameState?.timerActive ? 'disabled' : ''}>
+                        <i class="fas fa-play"></i> Запустить таймер
+                    </button>
+                </div>
+            `;
+        }
+
+        function renderTeams() {
+            const teamsList = document.getElementById('teamsList');
+            teamsList.innerHTML = teams.map(team => `
+                <div class="team-item">
+                    <div class="team-name">
+                        <i class="fas fa-user"></i> ${team.name}
+                        ${answers.has(team.id) ? 
+                            `<span class="team-answer">${getAnswerLetter(team.id)}</span>` : 
+                            ''}
+                    </div>
+                    <div class="team-score" onclick="editTeamScore('${team.id}', '${team.name}', ${team.score})">
+                        ${team.score} <i class="fas fa-pen edit-score"></i>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderScores() {
+            const scoresTable = document.getElementById('scoresTable');
+            scoresTable.innerHTML = teams.map(team => `
+                <div class="score-row">
+                    <span>${team.name}</span>
+                    <span class="score-value">${team.score}</span>
+                </div>
+            `).join('');
+        }
+
+        function getAnswerLetter(teamId) {
+            const answer = answers.get(teamId);
+            if (!answer) return '';
+            
+            const currentRoundData = rounds.find(r => r.id === `r${currentRound}`);
+            const question = currentRoundData?.questions.find(q => q.id === currentQuestionId);
+            const option = question?.options.find(o => o.id === answer.optionId);
+            return option?.letter || '';
+        }
+
+        function updateTeamAnswer(teamId, optionId) {
+            answers.set(teamId, { optionId });
+            renderTeams();
+        }
+
+        function showCorrectAnswer(correctOptionId) {
+            document.querySelectorAll('.option-card').forEach(opt => {
+                if (opt.dataset.optionId === correctOptionId) {
+                    opt.classList.add('correct');
+                    opt.querySelector('.option-letter').classList.add('correct');
                 }
             });
         }
 
-        function updateParticipants(participants) {
-            const list = document.getElementById('playersList');
-            const count = document.getElementById('onlineCount');
-
-            if (participants.length === 0) {
-                list.innerHTML = '<div class="player-card">Ожидание игроков...</div>';
-            } else {
-                list.innerHTML = '';
-                participants.slice(0, 20).forEach(p => {
-                    const div = document.createElement('div');
-                    div.className = 'player-card';
-                    div.innerHTML = `
-                        <i class="fas fa-user"></i> ${p.name}
-                        <span class="player-score">${p.score}</span>
-                    `;
-                    list.appendChild(div);
-                });
-            }
-            count.textContent = participants.length;
+        // Действия
+        function selectQuestion(questionId) {
+            currentQuestionId = questionId;
+            answers.clear();
+            renderQuestions();
+            renderCurrentQuestion();
         }
 
-        document.getElementById('startGameBtn').addEventListener('click', () => {
-            fetch('/api/start', { method: 'POST' });
-        });
+        function startTimer() {
+            fetch('/api/game/start-timer', { method: 'POST' });
+        }
 
-        document.getElementById('showOptionsBtn').addEventListener('click', () => {
-            fetch('/api/show-options', { method: 'POST' });
-        });
+        function showAnswer() {
+            fetch('/api/game/show-answer', { method: 'POST' });
+        }
 
-        document.getElementById('nextBtn').addEventListener('click', () => {
-            fetch('/api/next', { method: 'POST' });
-        });
+        function hideQuestion() {
+            fetch('/api/game/hide-question', { method: 'POST' });
+        }
 
+        function nextQuestion() {
+            fetch('/api/game/next-question', { method: 'POST' });
+        }
+
+        function showQR() {
+            alert(`Код игры: ${document.getElementById('gameCode').textContent}\nСсылка для игроков: ${window.location.origin}/join.html`);
+        }
+
+        function editRoundSettings() {
+            alert('Редактирование настроек раунда');
+        }
+
+        // Управление командами
+        function showAddTeamModal() {
+            document.getElementById('addTeamModal').classList.add('active');
+        }
+
+        function hideModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        async function addTeam() {
+            const teamName = document.getElementById('newTeamName').value || 'Новая команда';
+            
+            await fetch('/api/game/add-team', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamName })
+            });
+            
+            hideModal('addTeamModal');
+            document.getElementById('newTeamName').value = '';
+        }
+
+        function editTeamScore(teamId, teamName, currentScore) {
+            editingTeamId = teamId;
+            document.getElementById('editTeamName').value = teamName;
+            document.getElementById('editScoreValue').value = currentScore;
+            document.getElementById('editScoreModal').classList.add('active');
+        }
+
+        async function saveScore() {
+            const newScore = parseInt(document.getElementById('editScoreValue').value);
+            
+            await fetch('/api/game/update-score', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamId: editingTeamId, newScore })
+            });
+            
+            hideModal('editScoreModal');
+        }
+
+        function showTransferModal() {
+            const removeSelect = document.getElementById('removeTeamSelect');
+            const giveSelect = document.getElementById('giveTeamSelect');
+            
+            removeSelect.innerHTML = teams.map(t => 
+                `<option value="${t.id}">${t.name} (${t.score} очков)</option>`
+            ).join('');
+            
+            giveSelect.innerHTML = teams.map(t => 
+                `<option value="${t.id}">${t.name}</option>`
+            ).join('');
+            
+            document.getElementById('transferModal').classList.add('active');
+        }
+
+        async function transferScores() {
+            const removeTeamId = document.getElementById('removeTeamSelect').value;
+            const giveTeamId = document.getElementById('giveTeamSelect').value;
+            
+            const removeTeam = teams.find(t => t.id === removeTeamId);
+            const giveTeam = teams.find(t => t.id === giveTeamId);
+            
+            if (removeTeam && giveTeam) {
+                giveTeam.score += removeTeam.score;
+                
+                await fetch('/api/game/update-score', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teamId: giveTeam.id, newScore: giveTeam.score })
+                });
+                
+                await fetch('/api/game/remove-team', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ teamId: removeTeam.id })
+                });
+            }
+            
+            hideModal('transferModal');
+        }
+
+        // Инициализация
+        loadState();
         connectWebSocket();
     </script>
 </body>
-
 </html>
