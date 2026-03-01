@@ -5,38 +5,41 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление игрой | Квизли</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
+        /* Базовые стили */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Inter', sans-serif;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f5f7fb;
-            color: #1e293b;
+            background: #f8fafc;
+            color: #0f172a;
+            padding: 20px;
         }
 
-        /* Шапка */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Навигация */
         .navbar {
             background: white;
-            border-bottom: 2px solid #e9ecef;
-            padding: 12px 24px;
+            border-radius: 12px;
+            padding: 16px 24px;
+            margin-bottom: 24px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
 
         .logo {
             color: #fd5b01;
             font-size: 28px;
             font-weight: 800;
-            letter-spacing: -0.5px;
         }
 
         .nav-links {
@@ -45,94 +48,20 @@
         }
 
         .nav-link {
-            color: #64748b;
+            color: #475569;
             text-decoration: none;
             font-weight: 500;
-            font-size: 15px;
-            transition: color 0.2s;
-        }
-
-        .nav-link:hover {
-            color: #fd5b01;
         }
 
         .nav-link.active {
             color: #fd5b01;
-            position: relative;
-        }
-
-        .nav-link.active::after {
-            content: '';
-            position: absolute;
-            bottom: -16px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #fd5b01;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
-            gap: 20px;
         }
 
         .plan-badge {
             background: #f1f5f9;
             padding: 6px 12px;
-            border-radius: 20px;
+            border-radius: 30px;
             font-size: 13px;
-            color: #475569;
-        }
-
-        .avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: #fd5b01;
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            cursor: pointer;
-        }
-
-        /* Контейнер */
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 24px;
-        }
-
-        /* Хлебные крошки */
-        .breadcrumbs {
-            margin-bottom: 24px;
-            font-size: 14px;
-            color: #64748b;
-        }
-
-        .breadcrumbs a {
-            color: #fd5b01;
-            text-decoration: none;
-        }
-
-        .breadcrumbs span {
-            color: #94a3b8;
-        }
-
-        /* Основной макет */
-        .game-layout {
-            display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 24px;
-        }
-
-        /* Левая колонка */
-        .left-column {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
         }
 
         /* Карточки */
@@ -140,161 +69,134 @@
             background: white;
             border-radius: 16px;
             padding: 24px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            border: 1px solid #e9ecef;
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .card-title {
             font-size: 18px;
             font-weight: 600;
-            color: #0f172a;
+            margin-bottom: 16px;
         }
 
-        /* Код подключения */
-        .connection-code {
+        /* Код */
+        .code-display {
             background: #f8fafc;
             border-radius: 12px;
             padding: 20px;
-            display: flex;
-            align-items: center;
-            gap: 24px;
-        }
-
-        .code-info {
-            flex: 1;
-        }
-
-        .code-label {
-            font-size: 12px;
-            color: #64748b;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
+            margin-bottom: 16px;
         }
 
         .code-value {
-            font-size: 36px;
+            font-size: 48px;
             font-weight: 700;
             font-family: monospace;
             color: #0f172a;
-            letter-spacing: 4px;
+            letter-spacing: 8px;
         }
 
-        .connected-count {
-            color: #10b981;
-            font-size: 14px;
-            margin-top: 4px;
-        }
-
-        .qr-button {
+        .link-display {
             background: white;
             border: 1px solid #e2e8f0;
-            padding: 8px 16px;
             border-radius: 8px;
-            font-size: 14px;
-            color: #475569;
-            cursor: pointer;
-            transition: all 0.2s;
+            padding: 12px;
+            display: flex;
+            justify-content: space-between;
+            margin: 12px 0;
         }
 
-        .qr-button:hover {
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background: #fd5b01;
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #e64e00;
+        }
+
+        /* Сетка */
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+        }
+
+        /* Управление экраном */
+        .screen-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 30px;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .control-btn:hover {
             border-color: #fd5b01;
             color: #fd5b01;
         }
 
-        /* Настройки раунда */
-        .round-settings {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 16px;
+        /* Табы раундов */
+        .rounds-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
         }
 
-        .settings-badge {
-            display: inline-flex;
-            align-items: center;
-            background: #e9ecef;
-            padding: 4px 12px;
+        .round-tab {
+            padding: 10px 20px;
+            border: 1px solid #e2e8f0;
             border-radius: 30px;
-            font-size: 13px;
-            margin-right: 8px;
-            margin-bottom: 8px;
-        }
-
-        .settings-badge i {
-            margin-right: 6px;
-            color: #64748b;
-        }
-
-        .edit-settings {
-            float: right;
-            color: #fd5b01;
-            font-size: 13px;
+            background: white;
             cursor: pointer;
         }
 
-        /* Список вопросов */
+        .round-tab.active {
+            background: #fd5b01;
+            color: white;
+            border-color: #fd5b01;
+        }
+
+        /* Вопросы */
         .questions-list {
-            margin-top: 16px;
+            margin-top: 20px;
         }
 
         .question-item {
             display: flex;
-            align-items: center;
-            padding: 12px;
-            border-radius: 8px;
+            justify-content: space-between;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 12px;
             cursor: pointer;
-            transition: background 0.2s;
-            border: 1px solid transparent;
         }
 
         .question-item:hover {
-            background: #f8fafc;
+            border-color: #fd5b01;
         }
 
         .question-item.active {
             background: #fff7ed;
-            border-color: #fed7aa;
-        }
-
-        .question-number {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 600;
-            font-size: 14px;
-            margin-right: 12px;
-        }
-
-        .question-info {
-            flex: 1;
-        }
-
-        .question-text-preview {
-            font-weight: 500;
-            margin-bottom: 4px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 400px;
-        }
-
-        .question-meta {
-            display: flex;
-            gap: 12px;
-            font-size: 12px;
-            color: #64748b;
+            border-color: #fd5b01;
         }
 
         .question-points {
@@ -302,263 +204,34 @@
             font-weight: 600;
         }
 
-        .question-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .status-badge {
-            background: #e9ecef;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-        }
-
-        .status-badge.answered {
-            background: #10b981;
-            color: white;
-        }
-
-        /* Текущий вопрос */
-        .current-question {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-        }
-
-        .question-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-        }
-
-        .question-title {
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .question-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .btn {
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            border: 1px solid #e2e8f0;
-            background: white;
-            color: #475569;
-        }
-
-        .btn:hover {
-            border-color: #fd5b01;
-            color: #fd5b01;
-        }
-
-        .btn-primary {
-            background: #fd5b01;
-            border-color: #fd5b01;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #e64e00;
-            border-color: #e64e00;
-            color: white;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 13px;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 1px solid #fd5b01;
-            color: #fd5b01;
-        }
-
-        .btn-outline:hover {
-            background: #fff7ed;
-        }
-
-        .options-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin: 20px 0;
-        }
-
-        .option-card {
-            display: flex;
-            align-items: center;
-            padding: 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            transition: all 0.2s;
-        }
-
-        .option-card.correct {
-            background: #f0fdf4;
-            border-color: #86efac;
-        }
-
-        .option-letter {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: #f1f5f9;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            margin-right: 12px;
-        }
-
-        .option-letter.correct {
-            background: #10b981;
-            color: white;
-        }
-
-        .option-text {
-            flex: 1;
-            font-size: 15px;
-        }
-
-        .question-footer {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .answered-info {
-            color: #10b981;
-            font-size: 14px;
-        }
-
-        .timer-info {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #ef4444;
-            font-size: 18px;
-            font-weight: 600;
-        }
-
-        /* Правая колонка */
-        .right-column {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        /* Список команд */
+        /* Команды */
         .teams-list {
-            margin-top: 16px;
+            margin: 16px 0;
         }
 
-        .team-item {
+        .team-row {
             display: flex;
-            align-items: center;
             justify-content: space-between;
             padding: 12px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .team-item:last-child {
-            border-bottom: none;
-        }
-
-        .team-name {
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .team-answer {
-            background: #f0fdf4;
-            color: #10b981;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 13px;
-            font-weight: 600;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         .team-score {
             font-weight: 600;
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 4px;
-        }
-
-        .team-score:hover {
-            background: #f1f5f9;
         }
 
         .add-team {
-            margin-top: 16px;
             width: 100%;
-            padding: 10px;
-            background: #f8fafc;
+            padding: 12px;
             border: 2px dashed #cbd5e1;
             border-radius: 8px;
-            color: #64748b;
-            font-size: 14px;
+            background: white;
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .add-team:hover {
-            border-color: #fd5b01;
-            color: #fd5b01;
-        }
-
-        /* Управление очками */
-        .scores-table {
-            width: 100%;
             margin-top: 12px;
         }
 
-        .score-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .score-row:last-child {
-            border-bottom: none;
-        }
-
-        .score-value {
-            font-weight: 700;
-            color: #0f172a;
-        }
-
-        .edit-score {
-            color: #64748b;
-            font-size: 12px;
-            margin-left: 8px;
-            cursor: pointer;
-        }
-
-        .transfer-info {
-            font-size: 12px;
-            color: #64748b;
-            margin-top: 12px;
-        }
-
-        /* Модальное окно */
+        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -569,7 +242,6 @@
             background: rgba(0,0,0,0.5);
             align-items: center;
             justify-content: center;
-            z-index: 1000;
         }
 
         .modal.active {
@@ -584,52 +256,29 @@
             max-width: 90%;
         }
 
-        .modal-title {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
-
         .modal-input {
             width: 100%;
             padding: 12px;
             border: 1px solid #e2e8f0;
             border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 14px;
+            margin: 12px 0;
         }
 
         .modal-actions {
             display: flex;
             justify-content: flex-end;
             gap: 12px;
+            margin-top: 16px;
         }
 
-        /* Утилиты */
+        .hidden {
+            display: none;
+        }
+
         .text-muted {
             color: #64748b;
-            font-size: 13px;
-        }
-
-        .flex {
-            display: flex;
-            gap: 8px;
-        }
-
-        .items-center {
-            align-items: center;
-        }
-
-        .gap-2 {
-            gap: 12px;
-        }
-
-        .mt-4 {
-            margin-top: 20px;
-        }
-
-        .mb-2 {
-            margin-bottom: 10px;
+            font-size: 14px;
+            margin-bottom: 16px;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -639,418 +288,175 @@
         <div class="logo">КВИЗЛИ</div>
         <div class="nav-links">
             <a href="#" class="nav-link active">Мои игры</a>
-            <a href="#" class="nav-link">Библиотека игр</a>
+            <a href="#" class="nav-link">Библиотека</a>
             <a href="#" class="nav-link">Тарифы</a>
             <a href="#" class="nav-link">Помощь</a>
         </div>
-        <div class="user-info">
-            <div class="plan-badge">
-                <i class="fas fa-crown" style="color: #fd5b01;"></i> Тариф «Бесплатный» · До 3 команд
-            </div>
-            <div class="avatar">Е</div>
+        <div class="plan-badge">
+            <i class="fas fa-crown" style="color: #fd5b01;"></i> Бесплатный · До 3 команд
         </div>
     </div>
 
     <div class="container">
-        <div class="breadcrumbs">
-            <a href="#">Мои игры</a> • 
-            <a href="#">Квиз про все на свете №2</a> • 
-            <span>Запуск #2 (01.03 10:51)</span>
-        </div>
-
         <div class="game-layout">
-            <!-- Левая колонка -->
             <div class="left-column">
-                <!-- Код подключения -->
+                <!-- Код игры -->
                 <div class="card">
-                    <div class="connection-code">
-                        <div class="code-info">
-                            <div class="code-label">Код подключения игроков</div>
-                            <div class="code-value" id="gameCode">EGA78</div>
-                            <div class="connected-count" id="connectedCount">
-                                <i class="fas fa-users"></i> Подключено команд: 1
-                            </div>
-                        </div>
-                        <div>
-                            <button class="qr-button" onclick="showQR()">
-                                <i class="fas fa-qrcode"></i> QR-код
-                            </button>
-                        </div>
+                    <div class="card-title">🔑 Код подключения</div>
+                    <div class="code-display">
+                        <div class="code-value" id="gameCode">5GXCR</div>
+                        <button class="btn" onclick="copyCode()">
+                            <i class="fas fa-copy"></i> Скопировать
+                        </button>
+                    </div>
+                    <div class="link-display">
+                        <span id="gameLink">https://qzly.ru?code=5GXCR</span>
+                        <button class="btn" onclick="copyLink()">📋</button>
+                    </div>
+                    <div id="teamsCount" style="color: #10b981; font-weight: 600;">
+                        <i class="fas fa-users"></i> Подключено команд: 1
                     </div>
                 </div>
 
-                <!-- Настройки раунда -->
+                <!-- Управление экраном -->
                 <div class="card">
-                    <div class="card-header">
-                        <h3 class="card-title">Настройки раунда</h3>
-                        <span class="edit-settings" onclick="editRoundSettings()">
-                            <i class="fas fa-pen"></i> Изменить
-                        </span>
+                    <div class="card-title">🖥️ Управление экраном</div>
+                    <div class="screen-controls">
+                        <button class="control-btn" onclick="toggleQR()">
+                            <i class="fas fa-qrcode"></i> Скрыть QR
+                        </button>
+                        <button class="control-btn" onclick="togglePointsColumn()">
+                            <i class="fas fa-columns"></i> Очки
+                        </button>
+                        <button class="control-btn" onclick="togglePointsTable()">
+                            <i class="fas fa-table"></i> Таблица
+                        </button>
+                        <button class="control-btn" onclick="presentPlayers()">
+                            <i class="fas fa-users"></i> Представить
+                        </button>
+                        <button class="control-btn" onclick="showWinners()">
+                            <i class="fas fa-trophy"></i> Победители
+                        </button>
                     </div>
-                    <div class="round-settings" id="roundSettings">
-                        <span class="settings-badge">
-                            <i class="fas fa-clock"></i> 30 секунд на вопрос
-                        </span>
-                        <span class="settings-badge">
-                            <i class="fas fa-ban"></i> Нельзя менять ответ
-                        </span>
+                </div>
+
+                <!-- Управление игрой -->
+                <div class="card">
+                    <div class="card-title">🎮 Управление игрой</div>
+                    
+                    <div class="rounds-tabs" id="roundsTabs">
+                        <div class="round-tab active">Раунд 1</div>
+                        <div class="round-tab">Тур 2</div>
+                        <div class="round-tab">Раунд 3</div>
+                        <div class="round-tab">Тур 4</div>
                     </div>
 
-                    <!-- Список вопросов -->
-                    <div class="card-header">
-                        <h3 class="card-title">Вопросы раунда 2 (ABCD)</h3>
-                    </div>
                     <div class="questions-list" id="questionsList">
-                        <!-- Динамически заполняется -->
+                        <!-- Будут загружены динамически -->
                     </div>
-                </div>
-
-                <!-- Текущий вопрос -->
-                <div class="card" id="currentQuestionCard">
-                    <!-- Динамически заполняется -->
                 </div>
             </div>
 
-            <!-- Правая колонка -->
             <div class="right-column">
-                <!-- Команды и ответы -->
+                <!-- Команды -->
                 <div class="card">
-                    <h3 class="card-title">Команды</h3>
+                    <div class="card-title">👥 Команды</div>
                     <div class="teams-list" id="teamsList">
-                        <!-- Динамически заполняется -->
+                        <div class="team-row">
+                            <span><i class="fas fa-user"></i> Команда 1</span>
+                            <span class="team-score" onclick="editTeamScore('t1', 'Команда 1', 0)">0 ✎</span>
+                        </div>
                     </div>
                     <button class="add-team" onclick="showAddTeamModal()">
                         <i class="fas fa-plus"></i> Добавить команду
                     </button>
                 </div>
 
-                <!-- Управление очками -->
+                <!-- Очки -->
                 <div class="card">
-                    <h3 class="card-title">Управление игроками</h3>
+                    <div class="card-title">🏆 Очки</div>
+                    <div class="teams-list" id="scoresTable">
+                        <div class="team-row">
+                            <span>Команда 1</span>
+                            <span class="team-score">0</span>
+                        </div>
+                    </div>
                     <p class="text-muted">Кликните на очки для редактирования</p>
-                    
-                    <div class="scores-table" id="scoresTable">
-                        <!-- Динамически заполняется -->
-                    </div>
-
-                    <div class="mt-4">
-                        <button class="btn btn-outline btn-sm" onclick="showTransferModal()">
-                            <i class="fas fa-exchange-alt"></i> Перебросить очки и удалить команду
-                        </button>
-                        <p class="transfer-info">На случай если команда зашла с нового телефона</p>
-                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно добавления команды -->
+    <!-- Модальные окна -->
     <div class="modal" id="addTeamModal">
         <div class="modal-content">
-            <h3 class="modal-title">Добавить команду</h3>
+            <h3>➕ Добавить команду</h3>
             <input type="text" class="modal-input" id="newTeamName" placeholder="Название команды">
             <div class="modal-actions">
-                <button class="btn" onclick="hideModal('addTeamModal')">Отмена</button>
+                <button class="btn" onclick="closeModal('addTeamModal')">Отмена</button>
                 <button class="btn btn-primary" onclick="addTeam()">Добавить</button>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно редактирования очков -->
     <div class="modal" id="editScoreModal">
         <div class="modal-content">
-            <h3 class="modal-title">Редактировать очки</h3>
+            <h3>✏️ Редактировать очки</h3>
             <input type="text" class="modal-input" id="editTeamName" readonly>
             <input type="number" class="modal-input" id="editScoreValue" value="0">
             <div class="modal-actions">
-                <button class="btn" onclick="hideModal('editScoreModal')">Отмена</button>
+                <button class="btn" onclick="closeModal('editScoreModal')">Отмена</button>
                 <button class="btn btn-primary" onclick="saveScore()">Сохранить</button>
             </div>
         </div>
     </div>
 
-    <!-- Модальное окно переброса очков -->
-    <div class="modal" id="transferModal">
-        <div class="modal-content">
-            <h3 class="modal-title">Переброс очков</h3>
-            <p class="text-muted">Какую команду удаляем?</p>
-            <select class="modal-input" id="removeTeamSelect"></select>
-            <p class="text-muted">Какой команде перебрасываем очки?</p>
-            <select class="modal-input" id="giveTeamSelect"></select>
-            <div class="modal-actions">
-                <button class="btn" onclick="hideModal('transferModal')">Отмена</button>
-                <button class="btn btn-primary" onclick="transferScores()">Перебросить</button>
-            </div>
-        </div>
-    </div>
-
     <script>
-        let teams = [];
-        let rounds = [];
-        let currentQuestion = null;
-        let currentRound = 1;
-        let currentQuestionId = 'q1';
-        let answers = new Map();
+        let teams = [{ id: 't1', name: 'Команда 1', score: 0 }];
         let editingTeamId = null;
         let ws;
 
         // WebSocket подключение
         function connectWebSocket() {
             ws = new WebSocket(`ws://${window.location.host}`);
-            
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                
-                switch(data.type) {
-                    case 'team_joined':
-                    case 'team_added':
-                        teams.push(data.team);
-                        renderTeams();
-                        renderScores();
-                        updateConnectedCount();
-                        break;
-                        
-                    case 'team_removed':
-                        teams = teams.filter(t => t.id !== data.teamId);
-                        renderTeams();
-                        renderScores();
-                        updateConnectedCount();
-                        break;
-                        
-                    case 'answer_submitted':
-                        answers.set(data.teamId, {
-                            optionId: data.optionId,
-                            isCorrect: data.isCorrect
-                        });
-                        updateTeamAnswer(data.teamId, data.optionId);
-                        document.getElementById('answeredCount').textContent = 
-                            `${data.answeredCount}/${data.totalTeams}`;
-                        renderCurrentQuestion();
-                        renderTeams();
-                        break;
-                        
-                    case 'timer_update':
-                        document.getElementById('timerDisplay').textContent = data.timeLeft;
-                        break;
-                        
-                    case 'timer_started':
-                        gameState.timerActive = true;
-                        renderCurrentQuestion();
-                        break;
-                        
-                    case 'show_answer':
-                        showCorrectAnswer(data.correctOptionId);
-                        break;
-                        
-                    case 'next_question':
-                        currentQuestion = data.question;
-                        currentRound = data.round;
-                        answers.clear();
-                        loadState();
-                        break;
-                        
-                    case 'score_updated':
-                        const team = teams.find(t => t.id === data.teamId);
-                        if (team) {
-                            team.score = data.newScore;
-                            renderScores();
-                        }
-                        break;
-                }
+                console.log('WebSocket:', data);
             };
         }
 
-        // Загрузка состояния
-        async function loadState() {
-            try {
-                const res = await fetch('/api/game/state');
-                const data = await res.json();
-                
-                teams = data.teams;
-                rounds = data.rounds;
-                currentRound = data.currentRound;
-                currentQuestionId = data.currentQuestionId;
-                gameState = {
-                    timerActive: data.timerActive,
-                    timerDuration: data.timerDuration,
-                    showOptions: data.showOptions,
-                    answeredCount: data.answeredCount
-                };
-                
-                document.getElementById('gameCode').textContent = data.code;
-                updateConnectedCount();
-                renderQuestions();
-                renderCurrentQuestion();
-                renderTeams();
-                renderScores();
-            } catch (e) {
-                console.error('Ошибка загрузки:', e);
-            }
+        // Копирование
+        function copyCode() {
+            const code = document.getElementById('gameCode').textContent;
+            navigator.clipboard.writeText(code);
+            alert('Код скопирован!');
         }
 
-        function updateConnectedCount() {
-            document.getElementById('connectedCount').innerHTML = 
-                `<i class="fas fa-users"></i> Подключено команд: ${teams.length}`;
+        function copyLink() {
+            const link = document.getElementById('gameLink').textContent;
+            navigator.clipboard.writeText(link);
+            alert('Ссылка скопирована!');
         }
 
-        function renderQuestions() {
-            const currentRoundData = rounds.find(r => r.id === `r${currentRound}`);
-            if (!currentRoundData) return;
-            
-            const questionsList = document.getElementById('questionsList');
-            questionsList.innerHTML = currentRoundData.questions.map(q => `
-                <div class="question-item ${q.id === currentQuestionId ? 'active' : ''}" 
-                     onclick="selectQuestion('${q.id}')">
-                    <div class="question-number">${q.id.replace('q', '')}</div>
-                    <div class="question-info">
-                        <div class="question-text-preview">${q.text.substring(0, 50)}${q.text.length > 50 ? '...' : ''}</div>
-                        <div class="question-meta">
-                            <span class="question-points"><i class="fas fa-star"></i> ${q.points}</span>
-                            <span><i class="fas fa-clock"></i> ${q.timer} сек</span>
-                        </div>
-                    </div>
-                    <div class="question-status">
-                        ${q.answered ? 
-                            '<span class="status-badge answered"><i class="fas fa-check"></i> Отвечен</span>' : 
-                            '<span class="status-badge"><i class="fas fa-hourglass-half"></i> Ожидает</span>'}
-                    </div>
-                </div>
-            `).join('');
+        // Управление экраном
+        function toggleQR() {
+            fetch('/api/session/hide-qr', { method: 'POST' });
         }
 
-        function renderCurrentQuestion() {
-            const currentRoundData = rounds.find(r => r.id === `r${currentRound}`);
-            currentQuestion = currentRoundData?.questions.find(q => q.id === currentQuestionId);
-            
-            if (!currentQuestion) return;
-            
-            const card = document.getElementById('currentQuestionCard');
-            const answersCount = gameState?.answeredCount || 0;
-            
-            card.innerHTML = `
-                <div class="question-header">
-                    <h3 class="question-title">Вопрос ${currentQuestionId.replace('q', '')} · Очки: ${currentQuestion.points}</h3>
-                    <div class="question-actions">
-                        <button class="btn btn-sm" onclick="showAnswer()">
-                            <i class="fas fa-check-circle"></i> Показать ответ
-                        </button>
-                        <button class="btn btn-sm" onclick="hideQuestion()">
-                            <i class="fas fa-eye-slash"></i> Скрыть вопрос
-                        </button>
-                    </div>
-                </div>
-                
-                <p style="margin-bottom: 20px; font-size: 16px;">${currentQuestion.text}</p>
-                
-                <div class="options-grid" id="optionsGrid">
-                    ${currentQuestion.options.map(opt => `
-                        <div class="option-card" data-option-id="${opt.id}">
-                            <div class="option-letter">${opt.letter}</div>
-                            <div class="option-text">${opt.text}</div>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <div class="question-footer">
-                    <div class="answered-info">
-                        <i class="fas fa-check-circle"></i> 
-                        <span id="answeredCount">${answersCount}/${teams.length}</span> ответов
-                    </div>
-                    <div class="timer-info">
-                        <i class="fas fa-clock"></i>
-                        <span id="timerDisplay">${gameState?.timerDuration || 30}</span> сек
-                    </div>
-                </div>
-                
-                <div style="margin-top: 16px;">
-                    <button class="btn btn-primary" onclick="startTimer()" ${gameState?.timerActive ? 'disabled' : ''}>
-                        <i class="fas fa-play"></i> Запустить таймер
-                    </button>
-                </div>
-            `;
+        function togglePointsColumn() {
+            fetch('/api/session/toggle-points-column', { method: 'POST' });
         }
 
-        function renderTeams() {
-            const teamsList = document.getElementById('teamsList');
-            teamsList.innerHTML = teams.map(team => `
-                <div class="team-item">
-                    <div class="team-name">
-                        <i class="fas fa-user"></i> ${team.name}
-                        ${answers.has(team.id) ? 
-                            `<span class="team-answer">${getAnswerLetter(team.id)}</span>` : 
-                            ''}
-                    </div>
-                    <div class="team-score" onclick="editTeamScore('${team.id}', '${team.name}', ${team.score})">
-                        ${team.score} <i class="fas fa-pen edit-score"></i>
-                    </div>
-                </div>
-            `).join('');
+        function togglePointsTable() {
+            fetch('/api/session/toggle-points-table', { method: 'POST' });
         }
 
-        function renderScores() {
-            const scoresTable = document.getElementById('scoresTable');
-            scoresTable.innerHTML = teams.map(team => `
-                <div class="score-row">
-                    <span>${team.name}</span>
-                    <span class="score-value">${team.score}</span>
-                </div>
-            `).join('');
+        function presentPlayers() {
+            fetch('/api/session/present-players', { method: 'POST' });
         }
 
-        function getAnswerLetter(teamId) {
-            const answer = answers.get(teamId);
-            if (!answer) return '';
-            
-            const currentRoundData = rounds.find(r => r.id === `r${currentRound}`);
-            const question = currentRoundData?.questions.find(q => q.id === currentQuestionId);
-            const option = question?.options.find(o => o.id === answer.optionId);
-            return option?.letter || '';
-        }
-
-        function updateTeamAnswer(teamId, optionId) {
-            answers.set(teamId, { optionId });
-            renderTeams();
-        }
-
-        function showCorrectAnswer(correctOptionId) {
-            document.querySelectorAll('.option-card').forEach(opt => {
-                if (opt.dataset.optionId === correctOptionId) {
-                    opt.classList.add('correct');
-                    opt.querySelector('.option-letter').classList.add('correct');
-                }
-            });
-        }
-
-        // Действия
-        function selectQuestion(questionId) {
-            currentQuestionId = questionId;
-            answers.clear();
-            renderQuestions();
-            renderCurrentQuestion();
-        }
-
-        function startTimer() {
-            fetch('/api/game/start-timer', { method: 'POST' });
-        }
-
-        function showAnswer() {
-            fetch('/api/game/show-answer', { method: 'POST' });
-        }
-
-        function hideQuestion() {
-            fetch('/api/game/hide-question', { method: 'POST' });
-        }
-
-        function nextQuestion() {
-            fetch('/api/game/next-question', { method: 'POST' });
-        }
-
-        function showQR() {
-            alert(`Код игры: ${document.getElementById('gameCode').textContent}\nСсылка для игроков: ${window.location.origin}/join.html`);
-        }
-
-        function editRoundSettings() {
-            alert('Редактирование настроек раунда');
+        function showWinners() {
+            fetch('/api/session/show-winners', { method: 'POST' });
         }
 
         // Управление командами
@@ -1058,21 +464,25 @@
             document.getElementById('addTeamModal').classList.add('active');
         }
 
-        function hideModal(modalId) {
+        function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
 
         async function addTeam() {
             const teamName = document.getElementById('newTeamName').value || 'Новая команда';
             
-            await fetch('/api/game/add-team', {
+            const res = await fetch('/api/session/add-team', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ teamName })
             });
             
-            hideModal('addTeamModal');
-            document.getElementById('newTeamName').value = '';
+            const data = await res.json();
+            if (data.success) {
+                teams.push({ id: data.teamId, name: teamName, score: 0 });
+                updateTeamsList();
+                closeModal('addTeamModal');
+            }
         }
 
         function editTeamScore(teamId, teamName, currentScore) {
@@ -1085,59 +495,72 @@
         async function saveScore() {
             const newScore = parseInt(document.getElementById('editScoreValue').value);
             
-            await fetch('/api/game/update-score', {
+            await fetch('/api/session/update-score', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ teamId: editingTeamId, newScore })
             });
             
-            hideModal('editScoreModal');
+            const team = teams.find(t => t.id === editingTeamId);
+            if (team) team.score = newScore;
+            
+            updateTeamsList();
+            closeModal('editScoreModal');
         }
 
-        function showTransferModal() {
-            const removeSelect = document.getElementById('removeTeamSelect');
-            const giveSelect = document.getElementById('giveTeamSelect');
+        function updateTeamsList() {
+            const teamsList = document.getElementById('teamsList');
+            const scoresTable = document.getElementById('scoresTable');
             
-            removeSelect.innerHTML = teams.map(t => 
-                `<option value="${t.id}">${t.name} (${t.score} очков)</option>`
-            ).join('');
+            teamsList.innerHTML = teams.map(t => `
+                <div class="team-row">
+                    <span><i class="fas fa-user"></i> ${t.name}</span>
+                    <span class="team-score" onclick="editTeamScore('${t.id}', '${t.name}', ${t.score})">${t.score} ✎</span>
+                </div>
+            `).join('');
             
-            giveSelect.innerHTML = teams.map(t => 
-                `<option value="${t.id}">${t.name}</option>`
-            ).join('');
+            scoresTable.innerHTML = teams.map(t => `
+                <div class="team-row">
+                    <span>${t.name}</span>
+                    <span class="team-score">${t.score}</span>
+                </div>
+            `).join('');
             
-            document.getElementById('transferModal').classList.add('active');
+            document.getElementById('teamsCount').innerHTML = 
+                `<i class="fas fa-users"></i> Подключено команд: ${teams.length}`;
         }
 
-        async function transferScores() {
-            const removeTeamId = document.getElementById('removeTeamSelect').value;
-            const giveTeamId = document.getElementById('giveTeamSelect').value;
+        // Загрузка вопросов
+        async function loadQuestions() {
+            const res = await fetch('/api/session/state');
+            const data = await res.json();
             
-            const removeTeam = teams.find(t => t.id === removeTeamId);
-            const giveTeam = teams.find(t => t.id === giveTeamId);
+            const questionsList = document.getElementById('questionsList');
+            const round = data.currentRound;
             
-            if (removeTeam && giveTeam) {
-                giveTeam.score += removeTeam.score;
-                
-                await fetch('/api/game/update-score', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ teamId: giveTeam.id, newScore: giveTeam.score })
-                });
-                
-                await fetch('/api/game/remove-team', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ teamId: removeTeam.id })
-                });
+            if (round && round.questions) {
+                questionsList.innerHTML = round.questions.map((q, i) => `
+                    <div class="question-item ${i === 0 ? 'active' : ''}">
+                        <div>
+                            <div class="question-points"><i class="fas fa-star"></i> ${q.points}</div>
+                            <div>${q.text.substring(0, 50)}${q.text.length > 50 ? '...' : ''}</div>
+                        </div>
+                        <button class="btn" onclick="startTimer()">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                `).join('');
             }
-            
-            hideModal('transferModal');
+        }
+
+        function startTimer() {
+            fetch('/api/session/start-timer', { method: 'POST' });
         }
 
         // Инициализация
-        loadState();
         connectWebSocket();
+        loadQuestions();
+        updateTeamsList();
     </script>
 </body>
 </html>
