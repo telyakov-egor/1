@@ -9,11 +9,11 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
+            font-family: system-ui, -apple-system, 'Inter', sans-serif;
         }
 
         body {
-            background: #f5f7fb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -32,17 +32,17 @@
         }
 
         .logo h1 {
-            color: #fd5b01;
+            color: white;
             font-size: 48px;
             font-weight: 800;
-            letter-spacing: -1px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
         }
 
         .join-card {
             background: white;
             border-radius: 24px;
             padding: 40px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
 
         .form-group {
@@ -52,12 +52,31 @@
         label {
             display: block;
             font-size: 14px;
-            font-weight: 500;
-            color: #475569;
+            font-weight: 600;
+            color: #4a5568;
             margin-bottom: 8px;
         }
 
-        input {
+        .code-input {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 32px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 8px;
+            font-family: monospace;
+            color: #fd5b01;
+            background: #f7fafc;
+        }
+
+        .code-input:focus {
+            outline: none;
+            border-color: #fd5b01;
+        }
+
+        .name-input {
             width: 100%;
             padding: 16px;
             border: 2px solid #e2e8f0;
@@ -66,17 +85,9 @@
             transition: all 0.2s;
         }
 
-        input:focus {
+        .name-input:focus {
             outline: none;
             border-color: #fd5b01;
-        }
-
-        .code-input {
-            font-size: 32px;
-            font-weight: 600;
-            text-align: center;
-            letter-spacing: 8px;
-            font-family: monospace;
         }
 
         .btn {
@@ -86,7 +97,7 @@
             color: white;
             border: none;
             border-radius: 12px;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.2s;
@@ -96,33 +107,23 @@
         .btn:hover {
             background: #e64e00;
             transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(253, 91, 1, 0.2);
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+            box-shadow: 0 10px 20px rgba(253, 91, 1, 0.3);
         }
 
         .info {
-            margin-top: 24px;
+            margin-top: 20px;
             padding: 16px;
-            background: #f8fafc;
+            background: #f7fafc;
             border-radius: 12px;
             font-size: 14px;
-            color: #64748b;
+            color: #4a5568;
             text-align: center;
         }
 
-        .info i {
-            color: #fd5b01;
-            margin-right: 8px;
-        }
-
         .error {
-            color: #ef4444;
+            color: #e53e3e;
             font-size: 14px;
-            margin-top: 12px;
+            margin-top: 10px;
             text-align: center;
             display: none;
         }
@@ -134,141 +135,13 @@
         .powered {
             margin-top: 30px;
             text-align: center;
-            color: #94a3b8;
+            color: rgba(255,255,255,0.8);
             font-size: 12px;
         }
-
-        /* Экран игры для участника */
-        .game-screen {
-            background: white;
-            border-radius: 24px;
-            padding: 30px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
-        }
-
-        .team-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #e9ecef;
-            margin-bottom: 30px;
-        }
-
-        .team-name {
-            font-size: 20px;
-            font-weight: 600;
-        }
-
-        .team-score {
-            font-size: 24px;
-            font-weight: 700;
-            color: #fd5b01;
-        }
-
-        .waiting-question {
-            text-align: center;
-            padding: 60px 20px;
-            color: #94a3b8;
-        }
-
-        .waiting-question i {
-            font-size: 48px;
-            margin-bottom: 20px;
-            color: #fd5b01;
-        }
-
-        .question-text {
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 30px;
-            line-height: 1.4;
-        }
-
-        .player-timer {
-            font-size: 48px;
-            font-weight: 700;
-            text-align: center;
-            color: #fd5b01;
-            margin-bottom: 30px;
-        }
-
-        .player-timer.warning {
-            color: #ef4444;
-            animation: pulse 1s infinite;
-        }
-
-        .player-options {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-
-        .player-option {
-            padding: 20px;
-            border: 2px solid #e2e8f0;
-            border-radius: 12px;
-            font-size: 18px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            background: white;
-        }
-
-        .player-option:hover {
-            border-color: #fd5b01;
-        }
-
-        .player-option.selected {
-            background: #fd5b01;
-            color: white;
-            border-color: #fd5b01;
-        }
-
-        .player-option.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .player-option.correct {
-            background: #10b981;
-            color: white;
-            border-color: #10b981;
-        }
-
-        .player-option.wrong {
-            background: #ef4444;
-            color: white;
-            border-color: #ef4444;
-        }
-
-        .answer-status {
-            text-align: center;
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 20px;
-        }
-
-        .answer-status.correct {
-            background: #f0fdf4;
-            color: #10b981;
-        }
-
-        .answer-status.wrong {
-            background: #fef2f2;
-            color: #ef4444;
-        }
-
-        .hidden {
-            display: none;
-        }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Экран входа -->
-    <div class="join-container" id="joinScreen">
+    <div class="join-container">
         <div class="logo">
             <h1>КВИЗЛИ</h1>
         </div>
@@ -276,12 +149,12 @@
         <div class="join-card">
             <div class="form-group">
                 <label>Код игры</label>
-                <input type="text" class="code-input" id="gameCode" placeholder="EGA78" maxlength="5">
+                <input type="text" class="code-input" id="gameCode" placeholder="XXXXX" maxlength="5" value="">
             </div>
             
             <div class="form-group">
                 <label>Название команды</label>
-                <input type="text" id="teamName" placeholder="Введите название команды">
+                <input type="text" class="name-input" id="teamName" placeholder="Введите название команды" value="Команда">
             </div>
             
             <button class="btn" id="joinBtn">
@@ -302,235 +175,81 @@
         </div>
     </div>
 
-    <!-- Экран игры -->
-    <div class="join-container" id="gameScreen" style="display: none;">
-        <div class="logo">
-            <h1>КВИЗЛИ</h1>
-        </div>
-        
-        <div class="game-screen">
-            <div class="team-header">
-                <span class="team-name" id="teamNameDisplay">Команда</span>
-                <span class="team-score" id="teamScoreDisplay">0</span>
-            </div>
-            
-            <!-- Ожидание вопроса -->
-            <div id="waitingQuestion" class="waiting-question">
-                <i class="fas fa-hourglass-half fa-spin"></i>
-                <h3>Ожидание вопроса...</h3>
-                <p>Скоро появится вопрос</p>
-            </div>
-            
-            <!-- Активный вопрос -->
-            <div id="activeQuestion" style="display: none;">
-                <div class="question-text" id="questionDisplay"></div>
-                <div class="player-timer" id="timerDisplay">30</div>
-                <div class="player-options" id="optionsContainer"></div>
-                <div class="answer-status hidden" id="answerStatus"></div>
-            </div>
-        </div>
-    </div>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
-        let teamId = null;
-        let teamName = '';
-        let teamScore = 0;
-        let currentQuestion = null;
-        let hasAnswered = false;
-        let ws;
-        let timerInterval;
+        // Получаем код из URL при загрузке страницы
+        const urlParams = new URLSearchParams(window.location.search);
+        const codeFromUrl = urlParams.get('code');
+        
+        if (codeFromUrl) {
+            document.getElementById('gameCode').value = codeFromUrl;
+        }
 
-        document.getElementById('joinBtn').addEventListener('click', joinGame);
-        document.getElementById('gameCode').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') joinGame();
-        });
-
-        async function joinGame() {
+        document.getElementById('joinBtn').addEventListener('click', async () => {
             const code = document.getElementById('gameCode').value.trim().toUpperCase();
-            teamName = document.getElementById('teamName').value.trim() || 'Новая команда';
+            const teamName = document.getElementById('teamName').value.trim() || 'Команда';
             
             if (!code) {
                 showError('Введите код игры');
                 return;
             }
             
+            if (code.length !== 5) {
+                showError('Код должен содержать 5 символов');
+                return;
+            }
+            
             try {
-                const res = await fetch('/api/game/join', {
+                const response = await fetch('/api/session/join', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ code, teamName })
                 });
                 
-                const data = await res.json();
+                const data = await response.json();
                 
                 if (data.error) {
                     showError(data.error);
                     return;
                 }
                 
-                teamId = data.teamId;
-                
-                document.getElementById('joinScreen').style.display = 'none';
-                document.getElementById('gameScreen').style.display = 'block';
-                document.getElementById('teamNameDisplay').textContent = teamName;
-                
-                connectWebSocket();
-            } catch (e) {
+                if (data.success) {
+                    // Сохраняем информацию о команде
+                    localStorage.setItem('teamId', data.teamId);
+                    localStorage.setItem('teamName', teamName);
+                    localStorage.setItem('sessionId', data.sessionId);
+                    
+                    // Переходим на экран игрока
+                    window.location.href = `/player.html?sessionId=${data.sessionId}&teamId=${data.teamId}`;
+                }
+            } catch (error) {
+                console.error('Ошибка:', error);
                 showError('Ошибка подключения к серверу');
             }
-        }
+        });
 
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = message;
             errorEl.classList.add('show');
+            
+            setTimeout(() => {
+                errorEl.classList.remove('show');
+            }, 3000);
         }
 
-        function connectWebSocket() {
-            ws = new WebSocket(`ws://${window.location.host}`);
-            
-            ws.onopen = () => {
-                ws.send(JSON.stringify({ type: 'join_as_player', teamId }));
-            };
-            
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                
-                switch(data.type) {
-                    case 'timer_started':
-                        loadQuestion(data.questionId);
-                        break;
-                        
-                    case 'timer_update':
-                        updateTimer(data.timeLeft);
-                        break;
-                        
-                    case 'timer_finished':
-                        endTimer();
-                        break;
-                        
-                    case 'show_answer':
-                        showCorrectAnswer(data.correctOptionId);
-                        break;
-                        
-                    case 'next_question':
-                        resetForNewQuestion();
-                        break;
-                        
-                    case 'score_updated':
-                        if (data.teamId === teamId) {
-                            teamScore = data.newScore;
-                            document.getElementById('teamScoreDisplay').textContent = teamScore;
-                        }
-                        break;
-                }
-            };
-        }
-
-        async function loadQuestion(questionId) {
-            const res = await fetch('/api/game/state');
-            const data = await res.json();
-            
-            const currentRound = data.rounds.find(r => r.id === `r${data.currentRound}`);
-            currentQuestion = currentRound?.questions.find(q => q.id === questionId);
-            
-            if (!currentQuestion) return;
-            
-            document.getElementById('waitingQuestion').style.display = 'none';
-            document.getElementById('activeQuestion').style.display = 'block';
-            document.getElementById('questionDisplay').textContent = currentQuestion.text;
-            
-            const optionsContainer = document.getElementById('optionsContainer');
-            optionsContainer.innerHTML = currentQuestion.options.map(opt => `
-                <button class="player-option" data-option-id="${opt.id}" onclick="selectAnswer('${opt.id}')">
-                    ${opt.letter}. ${opt.text}
-                </button>
-            `).join('');
-            
-            hasAnswered = false;
-        }
-
-        function updateTimer(timeLeft) {
-            const timerDisplay = document.getElementById('timerDisplay');
-            timerDisplay.textContent = timeLeft;
-            
-            if (timeLeft <= 5) {
-                timerDisplay.classList.add('warning');
+        // Enter для отправки
+        document.getElementById('gameCode').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('joinBtn').click();
             }
-        }
-
-        function endTimer() {
-            if (!hasAnswered) {
-                disableOptions();
+        });
+        
+        document.getElementById('teamName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('joinBtn').click();
             }
-        }
-
-        function selectAnswer(optionId) {
-            if (hasAnswered || !currentQuestion) return;
-            
-            hasAnswered = true;
-            disableOptions();
-            
-            // Подсветка выбранного варианта
-            document.querySelectorAll('.player-option').forEach(btn => {
-                if (btn.dataset.optionId === optionId) {
-                    btn.classList.add('selected');
-                }
-            });
-            
-            // Отправка ответа на сервер
-            fetch('/api/game/submit-answer', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ teamId, optionId })
-            })
-            .then(res => res.json())
-            .then(data => {
-                const statusEl = document.getElementById('answerStatus');
-                statusEl.classList.remove('hidden');
-                
-                if (data.isCorrect) {
-                    statusEl.className = 'answer-status correct';
-                    statusEl.innerHTML = `
-                        <i class="fas fa-check-circle fa-2x"></i>
-                        <h3>Правильно!</h3>
-                        <p>+${data.pointsEarned} очков</p>
-                    `;
-                    teamScore += data.pointsEarned;
-                    document.getElementById('teamScoreDisplay').textContent = teamScore;
-                } else {
-                    statusEl.className = 'answer-status wrong';
-                    statusEl.innerHTML = `
-                        <i class="fas fa-times-circle fa-2x"></i>
-                        <h3>Неправильно</h3>
-                    `;
-                }
-            });
-        }
-
-        function showCorrectAnswer(correctOptionId) {
-            document.querySelectorAll('.player-option').forEach(btn => {
-                btn.disabled = true;
-                if (btn.dataset.optionId === correctOptionId) {
-                    btn.classList.add('correct');
-                } else if (btn.classList.contains('selected')) {
-                    btn.classList.add('wrong');
-                }
-            });
-        }
-
-        function disableOptions() {
-            document.querySelectorAll('.player-option').forEach(btn => {
-                btn.disabled = true;
-            });
-        }
-
-        function resetForNewQuestion() {
-            document.getElementById('waitingQuestion').style.display = 'block';
-            document.getElementById('activeQuestion').style.display = 'none';
-            document.getElementById('answerStatus').classList.add('hidden');
-            document.getElementById('timerDisplay').classList.remove('warning');
-        }
+        });
     </script>
 </body>
 </html>

@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Игра | Квизли</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Inter', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px 16px 0 0;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .team-info {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .score {
+            font-size: 24px;
+            font-weight: 700;
+            color: #fd5b01;
+        }
+
+        .question-card {
+            background: white;
+            border-radius: 0 0 16px 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .waiting-card {
+            background: white;
+            border-radius: 16px;
+            padding: 60px 30px;
+            text-align: center;
+        }
+
+        .waiting-icon {
+            font-size: 64px;
+            color: #fd5b01;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .question-text {
+            font-size: 24px;
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 30px;
+            line-height: 1.4;
+        }
+
+        .timer {
+            font-size: 48px;
+            font-weight: 700;
+            text-align: center;
+            color: #fd5b01;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f7fafc;
+            border-radius: 16px;
+        }
+
+        .timer.warning {
+            color: #e53e3e;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .option {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .option:hover {
+            border-color: #fd5b01;
+            transform: translateY(-2px);
+        }
+
+        .option.selected {
+            background: #fd5b01;
+            color: white;
+            border-color: #fd5b01;
+        }
+
+        .option.correct {
+            background: #48bb78;
+            color: white;
+            border-color: #48bb78;
+        }
+
+        .option.wrong {
+            background: #f56565;
+            color: white;
+            border-color: #f56565;
+        }
+
+        .option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .result.correct {
+            background: #f0fff4;
+            color: #48bb78;
+            border: 2px solid #48bb78;
+        }
+
+        .result.wrong {
+            background: #fff5f5;
+            color: #f56565;
+            border: 2px solid #f56565;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <div class="header">
+            <span class="team-info" id="teamName">Команда</span>
+            <span class="score" id="teamScore">0</span>
+        </div>
+
+        <!-- Экран ожидания -->
+        <div id="waitingScreen" class="waiting-card">
+            <div class="waiting-icon">
+                <i class="fas fa-hourglass-half fa-spin"></i>
+            </div>
+            <h2 style="margin-bottom: 10px;">Ожидание вопроса</h2>
+            <p style="color: #718096;">Скоро появится вопрос</p>
+        </div>
+
+        <!-- Экран вопроса -->
+        <div id="questionScreen" class="question-card hidden">
+            <div class="question-text" id="questionDisplay"></div>
+            <div class="timer" id="timerDisplay">30</div>
+            <div class="options" id="optionsContainer"></div>
+            <div id="resultDisplay" class="result hidden"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
+    <script>
+        // Получаем параметры из URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('sessionId');
+        const teamId = urlParams.get('teamId');
+        
+        let teamName = localStorage.getItem('teamName') || 'Команда';
+        let teamScore = 0;
+        let currentQuestion = null;
+        let hasAnswered = false;
+        let ws = null;
+        
+        document.getElementById('teamName').textContent = teamName;
+
+        // Подключаемся к WebSocket
+        function connectWebSocket() {
+            ws = new WebSocket(`ws://${window.location.host}?sessionId=${sessionId}`);
+            
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                console.log('Получено:', data);
+                
+                switch(data.type) {
+                    case 'timer_started':
+                        currentQuestion = data.question;
+                        showQuestion(data.timeLeft);
+                        break;
+                        
+                    case 'timer_update':
+                        updateTimer(data.timeLeft);
+                        break;
+                        
+                    case 'timer_finished':
+                        disableOptions();
+                        break;
+                        
+                    case 'show_answer':
+                        showCorrectAnswer(data.correctOptionId);
+                        break;
+                        
+                    case 'score_updated':
+                        if (data.teamId === teamId) {
+                            teamScore = data.newScore;
+                            document.getElementById('teamScore').textContent = teamScore;
+                        }
+                        break;
+                        
+                    case 'next_question':
+                        resetForNextQuestion();
+                        break;
+                }
+            };
+        }
+
+        function showQuestion(timeLeft) {
+            document.getElementById('waitingScreen').classList.add('hidden');
+            document.getElementById('questionScreen').classList.remove('hidden');
+            
+            document.getElementById('questionDisplay').textContent = currentQuestion.text;
+            document.getElementById('timerDisplay').textContent = timeLeft;
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = currentQuestion.options.map(opt => `
+                <div class="option" data-option-id="${opt.id}" onclick="selectOption('${opt.id}')">
+                    ${opt.letter}. ${opt.text}
+                </div>
+            `).join('');
+            
+            hasAnswered = false;
+            document.getElementById('resultDisplay').classList.add('hidden');
+        }
+
+        function updateTimer(timeLeft) {
+            const timerDisplay = document.getElementById('timerDisplay');
+            timerDisplay.textContent = timeLeft;
+            
+            if (timeLeft <= 5) {
+                timerDisplay.classList.add('warning');
+            } else {
+                timerDisplay.classList.remove('warning');
+            }
+        }
+
+        function selectOption(optionId) {
+            if (hasAnswered) return;
+            
+            hasAnswered = true;
+            
+            // Подсвечиваем выбранный вариант
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.add('disabled');
+                if (opt.dataset.optionId === optionId) {
+                    opt.classList.add('selected');
+                }
+            });
+            
+            // Отправляем ответ на сервер
+            fetch(`/api/session/${sessionId}/submit-answer`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamId, optionId })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    const resultDiv = document.getElementById('resultDisplay');
+                    resultDiv.classList.remove('hidden');
+                    
+                    if (data.isCorrect) {
+                        resultDiv.className = 'result correct';
+                        resultDiv.innerHTML = `
+                            <i class="fas fa-check-circle"></i> 
+                            Правильно! +${data.pointsEarned} очков
+                        `;
+                        teamScore += data.pointsEarned;
+                        document.getElementById('teamScore').textContent = teamScore;
+                    } else {
+                        resultDiv.className = 'result wrong';
+                        resultDiv.innerHTML = `
+                            <i class="fas fa-times-circle"></i> 
+                            Неправильно
+                        `;
+                    }
+                }
+            });
+        }
+
+        function showCorrectAnswer(correctOptionId) {
+            document.querySelectorAll('.option').forEach(opt => {
+                if (opt.dataset.optionId === correctOptionId) {
+                    opt.classList.add('correct');
+                }
+            });
+        }
+
+        function disableOptions() {
+            document.querySelectorAll('.option').forEach(opt => {
+                opt.classList.add('disabled');
+            });
+        }
+
+        function resetForNextQuestion() {
+            document.getElementById('waitingScreen').classList.remove('hidden');
+            document.getElementById('questionScreen').classList.add('hidden');
+            document.getElementById('timerDisplay').classList.remove('warning');
+        }
+
+        // Загружаем информацию о команде
+        async function loadTeamInfo() {
+            const response = await fetch(`/api/session/${sessionId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                const team = data.teams.find(t => t.id === teamId);
+                if (team) {
+                    teamScore = team.score;
+                    document.getElementById('teamScore').textContent = teamScore;
+                }
+            }
+        }
+
+        // Инициализация
+        if (sessionId && teamId) {
+            loadTeamInfo();
+            connectWebSocket();
+        } else {
+            window.location.href = '/join.html';
+        }
+    </script>
+</body>
+</html>
