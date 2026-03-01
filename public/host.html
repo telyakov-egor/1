@@ -5,35 +5,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление игрой | Квизли</title>
     <style>
-        /* Базовые стили */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Inter', sans-serif;
+            font-family: 'Inter', sans-serif;
         }
 
         body {
             background: #f8fafc;
             color: #0f172a;
-            padding: 20px;
         }
 
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        /* Навигация */
+        /* Шапка */
         .navbar {
             background: white;
-            border-radius: 12px;
-            padding: 16px 24px;
-            margin-bottom: 24px;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 16px 32px;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            justify-content: space-between;
         }
 
         .logo {
@@ -64,6 +57,25 @@
             font-size: 13px;
         }
 
+        /* Контейнер */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Хлебные крошки */
+        .breadcrumbs {
+            margin-bottom: 24px;
+            font-size: 14px;
+            color: #64748b;
+        }
+
+        .breadcrumbs a {
+            color: #fd5b01;
+            text-decoration: none;
+        }
+
         /* Карточки */
         .card {
             background: white;
@@ -76,42 +88,19 @@
         .card-title {
             font-size: 18px;
             font-weight: 600;
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
 
-        /* Код */
-        .code-display {
-            background: #f8fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 16px;
-        }
-
-        .code-value {
-            font-size: 48px;
-            font-weight: 700;
-            font-family: monospace;
-            color: #0f172a;
-            letter-spacing: 8px;
-        }
-
-        .link-display {
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            padding: 12px;
-            display: flex;
-            justify-content: space-between;
-            margin: 12px 0;
-        }
-
+        /* Кнопки */
         .btn {
-            padding: 8px 16px;
-            border: 1px solid #e2e8f0;
+            padding: 10px 20px;
             border-radius: 8px;
+            border: 1px solid #e2e8f0;
             background: white;
-            cursor: pointer;
             font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
         }
 
         .btn-primary {
@@ -124,11 +113,158 @@
             background: #e64e00;
         }
 
-        /* Сетка */
-        .game-layout {
+        .btn-large {
+            padding: 16px 32px;
+            font-size: 18px;
+        }
+
+        /* Секция презентации */
+        .presentation-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 40px;
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .presentation-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+
+        .presentation-subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 30px;
+        }
+
+        .presentation-btn {
+            background: white;
+            color: #764ba2;
+            border: none;
+            padding: 16px 48px;
+            font-size: 20px;
+            font-weight: 600;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .presentation-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* QR и код */
+        .game-info {
+            display: none;
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 2px solid #fd5b01;
+            animation: slideDown 0.5s;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .game-info-grid {
             display: grid;
-            grid-template-columns: 1fr 380px;
-            gap: 24px;
+            grid-template-columns: 200px 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .qr-container img {
+            width: 160px;
+            height: 160px;
+            margin-bottom: 10px;
+        }
+
+        .qr-label {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .code-container {
+            text-align: center;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 12px;
+        }
+
+        .code-label {
+            color: #64748b;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+
+        .code-value {
+            font-size: 64px;
+            font-weight: 700;
+            font-family: monospace;
+            color: #fd5b01;
+            letter-spacing: 8px;
+            margin-bottom: 16px;
+        }
+
+        .link-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 16px 0;
+        }
+
+        .link-value {
+            color: #475569;
+            font-family: monospace;
+            font-size: 16px;
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            color: #fd5b01;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 14px;
         }
 
         /* Управление экраном */
@@ -136,7 +272,7 @@
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-bottom: 20px;
+            margin: 20px 0;
         }
 
         .control-btn {
@@ -153,58 +289,14 @@
             color: #fd5b01;
         }
 
-        /* Табы раундов */
-        .rounds-tabs {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
+        /* Сетка */
+        .game-layout {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
         }
 
-        .round-tab {
-            padding: 10px 20px;
-            border: 1px solid #e2e8f0;
-            border-radius: 30px;
-            background: white;
-            cursor: pointer;
-        }
-
-        .round-tab.active {
-            background: #fd5b01;
-            color: white;
-            border-color: #fd5b01;
-        }
-
-        /* Вопросы */
-        .questions-list {
-            margin-top: 20px;
-        }
-
-        .question-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 16px;
-            border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            cursor: pointer;
-        }
-
-        .question-item:hover {
-            border-color: #fd5b01;
-        }
-
-        .question-item.active {
-            background: #fff7ed;
-            border-color: #fd5b01;
-        }
-
-        .question-points {
-            color: #10b981;
-            font-weight: 600;
-        }
-
-        /* Команды */
+        /* Список команд */
         .teams-list {
             margin: 16px 0;
         }
@@ -214,6 +306,12 @@
             justify-content: space-between;
             padding: 12px;
             border-bottom: 1px solid #e2e8f0;
+        }
+
+        .team-name {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .team-score {
@@ -231,7 +329,6 @@
             margin-top: 12px;
         }
 
-        /* Модальные окна */
         .modal {
             display: none;
             position: fixed;
@@ -242,6 +339,7 @@
             background: rgba(0,0,0,0.5);
             align-items: center;
             justify-content: center;
+            z-index: 1000;
         }
 
         .modal.active {
@@ -268,20 +366,12 @@
             display: flex;
             justify-content: flex-end;
             gap: 12px;
-            margin-top: 16px;
         }
 
         .hidden {
             display: none;
         }
-
-        .text-muted {
-            color: #64748b;
-            font-size: 14px;
-            margin-bottom: 16px;
-        }
     </style>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
     <div class="navbar">
@@ -293,67 +383,88 @@
             <a href="#" class="nav-link">Помощь</a>
         </div>
         <div class="plan-badge">
-            <i class="fas fa-crown" style="color: #fd5b01;"></i> Бесплатный · До 3 команд
+            <i class="fas fa-crown"></i> Бесплатный · До 3 команд
         </div>
     </div>
 
     <div class="container">
-        <div class="game-layout">
-            <div class="left-column">
-                <!-- Код игры -->
-                <div class="card">
-                    <div class="card-title">🔑 Код подключения</div>
-                    <div class="code-display">
-                        <div class="code-value" id="gameCode">5GXCR</div>
-                        <button class="btn" onclick="copyCode()">
-                            <i class="fas fa-copy"></i> Скопировать
-                        </button>
-                    </div>
-                    <div class="link-display">
-                        <span id="gameLink">https://qzly.ru?code=5GXCR</span>
+        <div class="breadcrumbs">
+            <a href="#">Мои игры</a> • 
+            <a href="#">Квиз про все на свете №2</a> • 
+            <span>Запуск</span>
+        </div>
+
+        <!-- Кнопка запуска презентации -->
+        <div class="presentation-section">
+            <div class="presentation-title">🎮 Начать игру</div>
+            <div class="presentation-subtitle">
+                Нажмите кнопку, чтобы создать новую игровую сессию<br>
+                и получить QR-код для подключения игроков
+            </div>
+            <button class="presentation-btn" onclick="startPresentation()">
+                <i class="fas fa-play"></i> Презентация игры
+            </button>
+        </div>
+
+        <!-- Информация об игре (появляется после нажатия) -->
+        <div class="game-info" id="gameInfo">
+            <div class="game-info-grid">
+                <div class="qr-container">
+                    <img id="qrImage" src="" alt="QR-код">
+                    <span class="qr-label">Наведите камеру</span>
+                </div>
+                <div class="code-container">
+                    <div class="code-label">Код игры</div>
+                    <div class="code-value" id="gameCode">---</div>
+                    
+                    <div class="link-container">
+                        <span class="link-value" id="gameLink">qzly.ru</span>
                         <button class="btn" onclick="copyLink()">📋</button>
                     </div>
-                    <div id="teamsCount" style="color: #10b981; font-weight: 600;">
-                        <i class="fas fa-users"></i> Подключено команд: 1
-                    </div>
-                </div>
-
-                <!-- Управление экраном -->
-                <div class="card">
-                    <div class="card-title">🖥️ Управление экраном</div>
-                    <div class="screen-controls">
-                        <button class="control-btn" onclick="toggleQR()">
-                            <i class="fas fa-qrcode"></i> Скрыть QR
-                        </button>
-                        <button class="control-btn" onclick="togglePointsColumn()">
-                            <i class="fas fa-columns"></i> Очки
-                        </button>
-                        <button class="control-btn" onclick="togglePointsTable()">
-                            <i class="fas fa-table"></i> Таблица
-                        </button>
-                        <button class="control-btn" onclick="presentPlayers()">
-                            <i class="fas fa-users"></i> Представить
-                        </button>
-                        <button class="control-btn" onclick="showWinners()">
-                            <i class="fas fa-trophy"></i> Победители
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Управление игрой -->
-                <div class="card">
-                    <div class="card-title">🎮 Управление игрой</div>
                     
-                    <div class="rounds-tabs" id="roundsTabs">
-                        <div class="round-tab active">Раунд 1</div>
-                        <div class="round-tab">Тур 2</div>
-                        <div class="round-tab">Раунд 3</div>
-                        <div class="round-tab">Тур 4</div>
+                    <div class="stats">
+                        <div class="stat-item">
+                            <div class="stat-value" id="teamsCount">0</div>
+                            <div class="stat-label">команд</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="playersCount">0</div>
+                            <div class="stat-label">игроков</div>
+                        </div>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="questions-list" id="questionsList">
-                        <!-- Будут загружены динамически -->
-                    </div>
+        <!-- Управление экраном -->
+        <div class="card" id="controlsCard" style="display: none;">
+            <div class="card-title">🖥️ Управление экраном</div>
+            <div class="screen-controls">
+                <button class="control-btn" onclick="toggleQR()">
+                    <i class="fas fa-qrcode"></i> Скрыть QR
+                </button>
+                <button class="control-btn" onclick="togglePointsColumn()">
+                    <i class="fas fa-columns"></i> Колонка очков
+                </button>
+                <button class="control-btn" onclick="togglePointsTable()">
+                    <i class="fas fa-table"></i> Таблица очков
+                </button>
+                <button class="control-btn" onclick="presentPlayers()">
+                    <i class="fas fa-users"></i> Представить
+                </button>
+                <button class="control-btn" onclick="showWinners()">
+                    <i class="fas fa-trophy"></i> Победители
+                </button>
+            </div>
+        </div>
+
+        <!-- Основной игровой интерфейс -->
+        <div class="game-layout" id="gameLayout" style="display: none;">
+            <div class="left-column">
+                <!-- Здесь будет список вопросов -->
+                <div class="card">
+                    <div class="card-title">🎯 Вопросы</div>
+                    <div id="questionsList"></div>
                 </div>
             </div>
 
@@ -361,12 +472,7 @@
                 <!-- Команды -->
                 <div class="card">
                     <div class="card-title">👥 Команды</div>
-                    <div class="teams-list" id="teamsList">
-                        <div class="team-row">
-                            <span><i class="fas fa-user"></i> Команда 1</span>
-                            <span class="team-score" onclick="editTeamScore('t1', 'Команда 1', 0)">0 ✎</span>
-                        </div>
-                    </div>
+                    <div class="teams-list" id="teamsList"></div>
                     <button class="add-team" onclick="showAddTeamModal()">
                         <i class="fas fa-plus"></i> Добавить команду
                     </button>
@@ -375,13 +481,7 @@
                 <!-- Очки -->
                 <div class="card">
                     <div class="card-title">🏆 Очки</div>
-                    <div class="teams-list" id="scoresTable">
-                        <div class="team-row">
-                            <span>Команда 1</span>
-                            <span class="team-score">0</span>
-                        </div>
-                    </div>
-                    <p class="text-muted">Кликните на очки для редактирования</p>
+                    <div class="teams-list" id="scoresTable"></div>
                 </div>
             </div>
         </div>
@@ -390,7 +490,7 @@
     <!-- Модальные окна -->
     <div class="modal" id="addTeamModal">
         <div class="modal-content">
-            <h3>➕ Добавить команду</h3>
+            <h3>Добавить команду</h3>
             <input type="text" class="modal-input" id="newTeamName" placeholder="Название команды">
             <div class="modal-actions">
                 <button class="btn" onclick="closeModal('addTeamModal')">Отмена</button>
@@ -401,7 +501,7 @@
 
     <div class="modal" id="editScoreModal">
         <div class="modal-content">
-            <h3>✏️ Редактировать очки</h3>
+            <h3>Редактировать очки</h3>
             <input type="text" class="modal-input" id="editTeamName" readonly>
             <input type="number" class="modal-input" id="editScoreValue" value="0">
             <div class="modal-actions">
@@ -411,52 +511,147 @@
         </div>
     </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     <script>
-        let teams = [{ id: 't1', name: 'Команда 1', score: 0 }];
+        let currentSessionId = null;
+        let currentGameId = 'game1';
+        let teams = [];
         let editingTeamId = null;
-        let ws;
+        let ws = null;
+
+        // Запуск презентации
+        async function startPresentation() {
+            try {
+                const response = await fetch('/api/games/create-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ gameId: currentGameId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentSessionId = data.session.id;
+                    
+                    // Отображаем QR и код
+                    document.getElementById('qrImage').src = data.session.qrCode;
+                    document.getElementById('gameCode').textContent = data.session.code;
+                    document.getElementById('gameLink').textContent = data.session.joinUrl;
+                    
+                    // Показываем блок с информацией
+                    document.getElementById('gameInfo').style.display = 'block';
+                    document.getElementById('controlsCard').style.display = 'block';
+                    document.getElementById('gameLayout').style.display = 'grid';
+                    
+                    // Подключаем WebSocket к сессии
+                    connectWebSocket(data.session.id);
+                    
+                    // Загружаем вопросы
+                    loadQuestions();
+                }
+            } catch (error) {
+                console.error('Ошибка создания сессии:', error);
+            }
+        }
 
         // WebSocket подключение
-        function connectWebSocket() {
-            ws = new WebSocket(`ws://${window.location.host}`);
+        function connectWebSocket(sessionId) {
+            ws = new WebSocket(`ws://${window.location.host}?sessionId=${sessionId}`);
+            
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
-                console.log('WebSocket:', data);
+                
+                switch(data.type) {
+                    case 'team_joined':
+                    case 'team_added':
+                        if (data.teams) {
+                            teams = data.teams;
+                            updateTeamsUI();
+                        }
+                        break;
+                        
+                    case 'team_removed':
+                        if (data.teams) {
+                            teams = data.teams;
+                            updateTeamsUI();
+                        }
+                        break;
+                        
+                    case 'score_updated':
+                        if (data.teams) {
+                            teams = data.teams;
+                            updateTeamsUI();
+                        }
+                        break;
+                        
+                    case 'answer_submitted':
+                        if (data.teams) {
+                            teams = data.teams;
+                            updateTeamsUI();
+                        }
+                        document.getElementById('answeredCount').textContent = 
+                            `${data.answeredCount}/${data.totalTeams}`;
+                        break;
+                }
             };
         }
 
-        // Копирование
-        function copyCode() {
-            const code = document.getElementById('gameCode').textContent;
-            navigator.clipboard.writeText(code);
-            alert('Код скопирован!');
+        // Загрузка вопросов
+        async function loadQuestions() {
+            const response = await fetch('/api/session/' + document.getElementById('gameCode').textContent);
+            const data = await response.json();
+            
+            if (data.success && data.game) {
+                const round = data.game.rounds[0];
+                const questionsList = document.getElementById('questionsList');
+                
+                if (round && round.questions) {
+                    questionsList.innerHTML = round.questions.map((q, i) => `
+                        <div class="question-item" style="padding: 16px; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div>
+                                    <span style="color: #10b981; font-weight: 600;">${q.points} очков</span>
+                                    <div style="margin-top: 4px;">${q.text.substring(0, 60)}...</div>
+                                </div>
+                                <button class="btn btn-primary" onclick="startTimer()">
+                                    <i class="fas fa-play"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            }
         }
 
-        function copyLink() {
-            const link = document.getElementById('gameLink').textContent;
-            navigator.clipboard.writeText(link);
-            alert('Ссылка скопирована!');
+        // Управление игрой
+        async function startTimer() {
+            if (!currentSessionId) return;
+            await fetch(`/api/session/${currentSessionId}/start-timer`, { method: 'POST' });
         }
 
-        // Управление экраном
-        function toggleQR() {
-            fetch('/api/session/hide-qr', { method: 'POST' });
+        async function toggleQR() {
+            if (!currentSessionId) return;
+            await fetch(`/api/session/${currentSessionId}/hide-qr`, { method: 'POST' });
         }
 
-        function togglePointsColumn() {
-            fetch('/api/session/toggle-points-column', { method: 'POST' });
+        async function togglePointsColumn() {
+            if (!currentSessionId) return;
+            await fetch(`/api/session/${currentSessionId}/toggle-points-column`, { method: 'POST' });
         }
 
-        function togglePointsTable() {
-            fetch('/api/session/toggle-points-table', { method: 'POST' });
+        async function togglePointsTable() {
+            if (!currentSessionId) return;
+            await fetch(`/api/session/${currentSessionId}/toggle-points-table`, { method: 'POST' });
         }
 
-        function presentPlayers() {
-            fetch('/api/session/present-players', { method: 'POST' });
+        async function presentPlayers() {
+            if (!currentSessionId) return;
+            await fetch(`/api/session/${currentSessionId}/present-players`, { method: 'POST' });
         }
 
-        function showWinners() {
-            fetch('/api/session/show-winners', { method: 'POST' });
+        async function showWinners() {
+            if (!currentSessionId) return;
+            await fetch(`/api/session/${currentSessionId}/show-winners`, { method: 'POST' });
         }
 
         // Управление командами
@@ -471,17 +666,16 @@
         async function addTeam() {
             const teamName = document.getElementById('newTeamName').value || 'Новая команда';
             
-            const res = await fetch('/api/session/add-team', {
+            const response = await fetch(`/api/session/${currentSessionId}/add-team`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ teamName })
             });
             
-            const data = await res.json();
+            const data = await response.json();
             if (data.success) {
-                teams.push({ id: data.teamId, name: teamName, score: 0 });
-                updateTeamsList();
                 closeModal('addTeamModal');
+                document.getElementById('newTeamName').value = '';
             }
         }
 
@@ -495,27 +689,27 @@
         async function saveScore() {
             const newScore = parseInt(document.getElementById('editScoreValue').value);
             
-            await fetch('/api/session/update-score', {
+            await fetch(`/api/session/${currentSessionId}/update-score`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ teamId: editingTeamId, newScore })
             });
             
-            const team = teams.find(t => t.id === editingTeamId);
-            if (team) team.score = newScore;
-            
-            updateTeamsList();
             closeModal('editScoreModal');
         }
 
-        function updateTeamsList() {
+        function updateTeamsUI() {
             const teamsList = document.getElementById('teamsList');
             const scoresTable = document.getElementById('scoresTable');
             
             teamsList.innerHTML = teams.map(t => `
                 <div class="team-row">
-                    <span><i class="fas fa-user"></i> ${t.name}</span>
-                    <span class="team-score" onclick="editTeamScore('${t.id}', '${t.name}', ${t.score})">${t.score} ✎</span>
+                    <span class="team-name">
+                        <i class="fas fa-user"></i> ${t.name}
+                    </span>
+                    <span class="team-score" onclick="editTeamScore('${t.id}', '${t.name}', ${t.score})">
+                        ${t.score} ✎
+                    </span>
                 </div>
             `).join('');
             
@@ -526,41 +720,15 @@
                 </div>
             `).join('');
             
-            document.getElementById('teamsCount').innerHTML = 
-                `<i class="fas fa-users"></i> Подключено команд: ${teams.length}`;
+            document.getElementById('teamsCount').textContent = teams.length;
+            document.getElementById('playersCount').textContent = teams.reduce((sum, t) => sum + 1, 0);
         }
 
-        // Загрузка вопросов
-        async function loadQuestions() {
-            const res = await fetch('/api/session/state');
-            const data = await res.json();
-            
-            const questionsList = document.getElementById('questionsList');
-            const round = data.currentRound;
-            
-            if (round && round.questions) {
-                questionsList.innerHTML = round.questions.map((q, i) => `
-                    <div class="question-item ${i === 0 ? 'active' : ''}">
-                        <div>
-                            <div class="question-points"><i class="fas fa-star"></i> ${q.points}</div>
-                            <div>${q.text.substring(0, 50)}${q.text.length > 50 ? '...' : ''}</div>
-                        </div>
-                        <button class="btn" onclick="startTimer()">
-                            <i class="fas fa-play"></i>
-                        </button>
-                    </div>
-                `).join('');
-            }
+        function copyLink() {
+            const link = document.getElementById('gameLink').textContent;
+            navigator.clipboard.writeText(link);
+            alert('Ссылка скопирована!');
         }
-
-        function startTimer() {
-            fetch('/api/session/start-timer', { method: 'POST' });
-        }
-
-        // Инициализация
-        connectWebSocket();
-        loadQuestions();
-        updateTeamsList();
     </script>
 </body>
 </html>

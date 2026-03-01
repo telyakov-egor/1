@@ -3,15 +3,14 @@ const http = require('http');
 const WebSocket = require('ws');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+const QRCode = require('qrcode');
 
 const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
-// Health check для Railway
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
-});
+// Хранилище активных игровых сессий
+let activeSessions = new Map();
 
 // Хранилище игр пользователя
 let userGames = [
@@ -144,97 +143,126 @@ let userGames = [
     }
 ];
 
-// Текущая игровая сессия
-let gameSession = {
-    id: uuidv4(),
-    gameId: 'game1',
-    code: '5GXCR',
-    pin: Math.floor(1000 + Math.random() * 9000).toString(),
-    active: false,
-    currentRound: 0,
-    currentQuestion: 0,
-    showOptions: false,
-    timerActive: false,
-    timerEndTime: null,
-    timerDuration: 30,
-    correctAnswerRevealed: false,
-    answers: new Map(),
-    answeredCount: 0,
-    startTime: null,
-    hideQR: false,
-    showPointsColumn: true,
-    showPointsTable: false
-};
+// Генерация случайного кода игры
+function generateGameCode() {
+    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 5; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return code;
+}
 
-// Команды
-let teams = [
-    { id: 't1', name: 'Команда 1', score: 0, answers: [], isActive: true }
-];
+// Создание новой игровой сессии
+function createGameSession(gameId) {
+    const gameCode = generateGameCode();
+    const session = {
+        id: uuidv4(),
+        gameId: gameId,
+        code: gameCode,
+        pin: Math.floor(1000 + Math.random() * 9000).toString(),
+        createdAt: new Date(),
+        active: false,
+        currentRound: 0,
+        currentQuestion: 0,
+        showOptions: false,
+        timerActive: false,
+        timerEndTime: null,
+        timerDuration: 30,
+        correctAnswerRevealed: false,
+        answers: new Map(),
+        answeredCount: 0,
+        startTime: null,
+        hideQR: false,
+        showPointsColumn: true,
+        showPointsTable: false,
+        teams: []
+    };
+    activeSessions.set(session.id, session);
+    return session;
+}
 
 // Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
-// API для игр пользователя
-app.get('/api/games', (req, res) => {
-    res.json(userGames);
+// Health check
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-app.get('/api/games/:gameId', (req, res) => {
-    const game = userGames.find(g => g.id === req.params.gameId);
-    res.json(game);
-});
-
-app.post('/api/games', (req, res) => {
-    const newGame = {
-        id: uuidv4(),
-        title: req.body.title || 'Новая игра',
-        createdAt: new Date().toISOString().split('T')[0],
-        rounds: []
-    };
-    userGames.push(newGame);
-    res.json(newGame);
-});
-
-// API для игровой сессии
-app.get('/api/session/state', (req, res) => {
-    const currentGame = userGames.find(g => g.id === gameSession.gameId);
-    const currentRound = currentGame?.rounds[gameSession.currentRound];
-    const currentQuestion = currentRound?.questions[gameSession.currentQuestion];
+// API для создания новой игры
+app.post('/api/games/create-session', async (req, res) => {
+    const { gameId } = req.body;
+    const session = createGameSession(gameId || 'game1');
     
-    res.json({
-        session: {
-            id: gameSession.id,
-            code: gameSession.code,
-            pin: gameSession.pin,
-            active: gameSession.active,
-            currentRound: gameSession.currentRound,
-            currentQuestion: gameSession.currentQuestion,
-            showOptions: gameSession.showOptions,
-            timerActive: gameSession.timerActive,
-            timerDuration: gameSession.timerDuration,
-            answeredCount: gameSession.answers.size,
-            totalTeams: teams.length,
-            hideQR: gameSession.hideQR,
-            showPointsColumn: gameSession.showPointsColumn,
-            showPointsTable: gameSession.showPointsTable
-        },
-        game: currentGame,
-        currentRound: currentRound,
-        currentQuestion: currentQuestion,
-        teams: teams.map(t => ({ id: t.id, name: t.name, score: t.score }))
-    });
+    // Генерируем QR-код
+    const baseUrl = req.get('host');
+    const protocol = req.protocol;
+    const joinUrl = `${protocol}://${baseUrl}/join.html?code=${session.code}`;
+    
+    try {
+        const qrCodeDataUrl = await QRCode.toDataURL(joinUrl);
+        
+        res.json({
+            success: true,
+            session: {
+                id: session.id,
+                code: session.code,
+                pin: session.pin,
+                joinUrl: joinUrl,
+                qrCode: qrCodeDataUrl
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ error: 'Ошибка генерации QR-кода' });
+    }
 });
 
+// API для получения сессии по коду
+app.get('/api/session/:code', (req, res) => {
+    const { code } = req.params;
+    
+    for (let [id, session] of activeSessions) {
+        if (session.code === code) {
+            const game = userGames.find(g => g.id === session.gameId);
+            return res.json({
+                success: true,
+                session: {
+                    id: session.id,
+                    code: session.code,
+                    pin: session.pin,
+                    active: session.active,
+                    currentRound: session.currentRound,
+                    currentQuestion: session.currentQuestion
+                },
+                game: game,
+                teams: session.teams
+            });
+        }
+    }
+    
+    res.status(404).json({ error: 'Сессия не найдена' });
+});
+
+// API для присоединения к игре
 app.post('/api/session/join', (req, res) => {
     const { code, teamName } = req.body;
     
-    if (code !== gameSession.code) {
-        return res.status(400).json({ error: 'Неверный код игры' });
+    let foundSession = null;
+    for (let [id, session] of activeSessions) {
+        if (session.code === code) {
+            foundSession = session;
+            break;
+        }
     }
     
-    if (teams.length >= 3) {
-        return res.status(400).json({ error: 'Достигнут лимит команд на бесплатном тарифе' });
+    if (!foundSession) {
+        return res.status(404).json({ error: 'Игра не найдена' });
+    }
+    
+    if (foundSession.teams.length >= 3) {
+        return res.status(400).json({ error: 'Достигнут лимит команд' });
     }
     
     const newTeam = {
@@ -245,34 +273,65 @@ app.post('/api/session/join', (req, res) => {
         isActive: true
     };
     
-    teams.push(newTeam);
+    foundSession.teams.push(newTeam);
     
-    broadcast({
+    // Отправляем обновление всем в этой сессии
+    broadcastToSession(foundSession.id, {
         type: 'team_joined',
-        team: { id: newTeam.id, name: newTeam.name, score: newTeam.score }
+        team: { id: newTeam.id, name: newTeam.name, score: newTeam.score },
+        teams: foundSession.teams
     });
     
-    res.json({ success: true, teamId: newTeam.id });
+    res.json({ 
+        success: true, 
+        teamId: newTeam.id,
+        sessionId: foundSession.id
+    });
 });
 
-app.post('/api/session/start-timer', (req, res) => {
-    const currentGame = userGames.find(g => g.id === gameSession.gameId);
-    const currentRound = currentGame?.rounds[gameSession.currentRound];
-    const currentQuestion = currentRound?.questions[gameSession.currentQuestion];
+// API для запуска презентации
+app.post('/api/session/:sessionId/start-presentation', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
+    
+    if (!session) {
+        return res.status(404).json({ error: 'Сессия не найдена' });
+    }
+    
+    session.active = true;
+    
+    broadcastToSession(sessionId, {
+        type: 'presentation_started',
+        session: session
+    });
+    
+    res.json({ success: true });
+});
+
+// API для управления игрой
+app.post('/api/session/:sessionId/start-timer', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
+    
+    if (!session) return res.status(404).json({ error: 'Сессия не найдена' });
+    
+    const game = userGames.find(g => g.id === session.gameId);
+    const currentRound = game?.rounds[session.currentRound];
+    const currentQuestion = currentRound?.questions[session.currentQuestion];
     
     if (!currentQuestion) return res.json({ success: false });
     
-    gameSession.timerActive = true;
-    gameSession.timerEndTime = Date.now() + (currentRound.settings.timePerQuestion * 1000);
-    gameSession.showOptions = true;
-    gameSession.startTime = Date.now();
-    gameSession.correctAnswerRevealed = false;
-    gameSession.answers.clear();
-    gameSession.answeredCount = 0;
+    session.timerActive = true;
+    session.timerEndTime = Date.now() + (currentRound.settings.timePerQuestion * 1000);
+    session.showOptions = true;
+    session.startTime = Date.now();
+    session.correctAnswerRevealed = false;
+    session.answers.clear();
+    session.answeredCount = 0;
     
-    startTimer();
+    startTimer(session);
     
-    broadcast({
+    broadcastToSession(sessionId, {
         type: 'timer_started',
         timeLeft: currentRound.settings.timePerQuestion,
         question: currentQuestion
@@ -281,41 +340,45 @@ app.post('/api/session/start-timer', (req, res) => {
     res.json({ success: true });
 });
 
-function startTimer() {
+function startTimer(session) {
     const timerInterval = setInterval(() => {
-        const timeLeft = Math.max(0, Math.ceil((gameSession.timerEndTime - Date.now()) / 1000));
+        const timeLeft = Math.max(0, Math.ceil((session.timerEndTime - Date.now()) / 1000));
         
-        broadcast({
+        broadcastToSession(session.id, {
             type: 'timer_update',
             timeLeft: timeLeft
         });
         
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
-            gameSession.timerActive = false;
+            session.timerActive = false;
             
-            broadcast({
+            broadcastToSession(session.id, {
                 type: 'timer_finished'
             });
         }
     }, 1000);
 }
 
-app.post('/api/session/submit-answer', (req, res) => {
+app.post('/api/session/:sessionId/submit-answer', (req, res) => {
+    const { sessionId } = req.params;
     const { teamId, optionId } = req.body;
-    const team = teams.find(t => t.id === teamId);
     
-    const currentGame = userGames.find(g => g.id === gameSession.gameId);
-    const currentRound = currentGame?.rounds[gameSession.currentRound];
-    const currentQuestion = currentRound?.questions[gameSession.currentQuestion];
+    const session = activeSessions.get(sessionId);
+    if (!session) return res.status(404).json({ error: 'Сессия не найдена' });
     
-    if (!team || !currentQuestion || !gameSession.timerActive || gameSession.answers.has(teamId)) {
+    const team = session.teams.find(t => t.id === teamId);
+    const game = userGames.find(g => g.id === session.gameId);
+    const currentRound = game?.rounds[session.currentRound];
+    const currentQuestion = currentRound?.questions[session.currentQuestion];
+    
+    if (!team || !currentQuestion || !session.timerActive || session.answers.has(teamId)) {
         return res.json({ success: false });
     }
     
     const selectedOption = currentQuestion.options.find(o => o.id === optionId);
     const isCorrect = selectedOption?.isCorrect || false;
-    const responseTime = gameSession.startTime ? (Date.now() - gameSession.startTime) / 1000 : 0;
+    const responseTime = session.startTime ? (Date.now() - session.startTime) / 1000 : 0;
     
     let pointsEarned = 0;
     if (isCorrect) {
@@ -328,23 +391,24 @@ app.post('/api/session/submit-answer', (req, res) => {
         team.score += pointsEarned;
     }
     
-    gameSession.answers.set(teamId, {
+    session.answers.set(teamId, {
         optionId,
         isCorrect,
         responseTime,
         pointsEarned
     });
     
-    gameSession.answeredCount = gameSession.answers.size;
+    session.answeredCount = session.answers.size;
     
-    broadcast({
+    broadcastToSession(sessionId, {
         type: 'answer_submitted',
         teamId,
         optionId,
         isCorrect,
         pointsEarned,
-        answeredCount: gameSession.answeredCount,
-        totalTeams: teams.length
+        answeredCount: session.answeredCount,
+        totalTeams: session.teams.length,
+        teams: session.teams
     });
     
     res.json({ 
@@ -355,12 +419,17 @@ app.post('/api/session/submit-answer', (req, res) => {
     });
 });
 
-app.post('/api/session/show-answer', (req, res) => {
-    gameSession.correctAnswerRevealed = true;
+app.post('/api/session/:sessionId/show-answer', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
     
-    const currentGame = userGames.find(g => g.id === gameSession.gameId);
-    const currentRound = currentGame?.rounds[gameSession.currentRound];
-    const currentQuestion = currentRound?.questions[gameSession.currentQuestion];
+    if (!session) return res.status(404).json({ error: 'Сессия не найдена' });
+    
+    session.correctAnswerRevealed = true;
+    
+    const game = userGames.find(g => g.id === session.gameId);
+    const currentRound = game?.rounds[session.currentRound];
+    const currentQuestion = currentRound?.questions[session.currentQuestion];
     
     if (currentQuestion) {
         currentQuestion.answered = true;
@@ -368,7 +437,7 @@ app.post('/api/session/show-answer', (req, res) => {
     
     const correctOption = currentQuestion?.options.find(o => o.isCorrect);
     
-    broadcast({
+    broadcastToSession(sessionId, {
         type: 'show_answer',
         correctOptionId: correctOption?.id,
         correctText: correctOption?.text
@@ -377,29 +446,34 @@ app.post('/api/session/show-answer', (req, res) => {
     res.json({ success: true });
 });
 
-app.post('/api/session/next-question', (req, res) => {
-    const currentGame = userGames.find(g => g.id === gameSession.gameId);
-    const currentRound = currentGame?.rounds[gameSession.currentRound];
+app.post('/api/session/:sessionId/next-question', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
+    
+    if (!session) return res.status(404).json({ error: 'Сессия не найдена' });
+    
+    const game = userGames.find(g => g.id === session.gameId);
+    const currentRound = game?.rounds[session.currentRound];
     
     if (!currentRound) return res.json({ success: false });
     
-    if (gameSession.currentQuestion < currentRound.questions.length - 1) {
-        gameSession.currentQuestion++;
-    } else if (gameSession.currentRound < currentGame.rounds.length - 1) {
-        gameSession.currentRound++;
-        gameSession.currentQuestion = 0;
+    if (session.currentQuestion < currentRound.questions.length - 1) {
+        session.currentQuestion++;
+    } else if (session.currentRound < game.rounds.length - 1) {
+        session.currentRound++;
+        session.currentQuestion = 0;
     }
     
-    gameSession.showOptions = false;
-    gameSession.timerActive = false;
-    gameSession.correctAnswerRevealed = false;
-    gameSession.answers.clear();
-    gameSession.answeredCount = 0;
+    session.showOptions = false;
+    session.timerActive = false;
+    session.correctAnswerRevealed = false;
+    session.answers.clear();
+    session.answeredCount = 0;
     
-    const nextRound = currentGame.rounds[gameSession.currentRound];
-    const nextQuestion = nextRound.questions[gameSession.currentQuestion];
+    const nextRound = game.rounds[session.currentRound];
+    const nextQuestion = nextRound.questions[session.currentQuestion];
     
-    broadcast({
+    broadcastToSession(sessionId, {
         type: 'next_question',
         round: nextRound,
         question: nextQuestion
@@ -408,38 +482,69 @@ app.post('/api/session/next-question', (req, res) => {
     res.json({ success: true });
 });
 
-app.post('/api/session/hide-qr', (req, res) => {
-    gameSession.hideQR = !gameSession.hideQR;
-    broadcast({ type: 'hide_qr', hideQR: gameSession.hideQR });
-    res.json({ success: true });
-});
-
-app.post('/api/session/toggle-points-column', (req, res) => {
-    gameSession.showPointsColumn = !gameSession.showPointsColumn;
-    broadcast({ type: 'toggle_points_column', show: gameSession.showPointsColumn });
-    res.json({ success: true });
-});
-
-app.post('/api/session/toggle-points-table', (req, res) => {
-    gameSession.showPointsTable = !gameSession.showPointsTable;
-    broadcast({ type: 'toggle_points_table', show: gameSession.showPointsTable });
-    res.json({ success: true });
-});
-
-app.post('/api/session/update-score', (req, res) => {
-    const { teamId, newScore } = req.body;
-    const team = teams.find(t => t.id === teamId);
+app.post('/api/session/:sessionId/hide-qr', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
     
-    if (team) {
-        team.score = newScore;
-        broadcast({ type: 'score_updated', teamId, newScore });
+    if (session) {
+        session.hideQR = !session.hideQR;
+        broadcastToSession(sessionId, { type: 'hide_qr', hideQR: session.hideQR });
     }
     
     res.json({ success: true });
 });
 
-app.post('/api/session/add-team', (req, res) => {
+app.post('/api/session/:sessionId/toggle-points-column', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
+    
+    if (session) {
+        session.showPointsColumn = !session.showPointsColumn;
+        broadcastToSession(sessionId, { type: 'toggle_points_column', show: session.showPointsColumn });
+    }
+    
+    res.json({ success: true });
+});
+
+app.post('/api/session/:sessionId/toggle-points-table', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
+    
+    if (session) {
+        session.showPointsTable = !session.showPointsTable;
+        broadcastToSession(sessionId, { type: 'toggle_points_table', show: session.showPointsTable });
+    }
+    
+    res.json({ success: true });
+});
+
+app.post('/api/session/:sessionId/update-score', (req, res) => {
+    const { sessionId } = req.params;
+    const { teamId, newScore } = req.body;
+    
+    const session = activeSessions.get(sessionId);
+    if (!session) return res.status(404).json({ error: 'Сессия не найдена' });
+    
+    const team = session.teams.find(t => t.id === teamId);
+    if (team) {
+        team.score = newScore;
+        broadcastToSession(sessionId, { 
+            type: 'score_updated', 
+            teamId, 
+            newScore,
+            teams: session.teams 
+        });
+    }
+    
+    res.json({ success: true });
+});
+
+app.post('/api/session/:sessionId/add-team', (req, res) => {
+    const { sessionId } = req.params;
     const { teamName } = req.body;
+    
+    const session = activeSessions.get(sessionId);
+    if (!session) return res.status(404).json({ error: 'Сессия не найдена' });
     
     const newTeam = {
         id: uuidv4(),
@@ -449,43 +554,102 @@ app.post('/api/session/add-team', (req, res) => {
         isActive: true
     };
     
-    teams.push(newTeam);
+    session.teams.push(newTeam);
     
-    broadcast({
+    broadcastToSession(sessionId, {
         type: 'team_added',
-        team: { id: newTeam.id, name: newTeam.name, score: newTeam.score }
+        team: { id: newTeam.id, name: newTeam.name, score: newTeam.score },
+        teams: session.teams
     });
     
     res.json({ success: true, teamId: newTeam.id });
 });
 
-app.post('/api/session/remove-team', (req, res) => {
+app.post('/api/session/:sessionId/remove-team', (req, res) => {
+    const { sessionId } = req.params;
     const { teamId } = req.body;
-    teams = teams.filter(t => t.id !== teamId);
-    broadcast({ type: 'team_removed', teamId });
+    
+    const session = activeSessions.get(sessionId);
+    if (!session) return res.status(404).json({ error: 'Сессия не найдена' });
+    
+    session.teams = session.teams.filter(t => t.id !== teamId);
+    
+    broadcastToSession(sessionId, {
+        type: 'team_removed',
+        teamId,
+        teams: session.teams
+    });
+    
     res.json({ success: true });
 });
 
-function broadcast(data) {
+app.post('/api/session/:sessionId/present-players', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
+    
+    if (session) {
+        broadcastToSession(sessionId, { 
+            type: 'present_players',
+            teams: session.teams 
+        });
+    }
+    
+    res.json({ success: true });
+});
+
+app.post('/api/session/:sessionId/show-winners', (req, res) => {
+    const { sessionId } = req.params;
+    const session = activeSessions.get(sessionId);
+    
+    if (session) {
+        const sortedTeams = [...session.teams].sort((a, b) => b.score - a.score);
+        broadcastToSession(sessionId, { 
+            type: 'show_winners', 
+            winners: sortedTeams.slice(0, 3) 
+        });
+    }
+    
+    res.json({ success: true });
+});
+
+function broadcastToSession(sessionId, data) {
+    // В реальном приложении здесь нужно хранить WebSocket соединения по сессиям
+    // Для упрощения отправляем всем
     wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
+        if (client.readyState === WebSocket.OPEN && client.sessionId === sessionId) {
             client.send(JSON.stringify(data));
         }
     });
 }
 
-// WebSocket
-wss.on('connection', (ws) => {
-    console.log('Новое WebSocket подключение');
+// WebSocket с поддержкой сессий
+wss.on('connection', (ws, req) => {
+    const urlParams = new URLSearchParams(req.url?.split('?')[1]);
+    const sessionId = urlParams.get('sessionId');
+    
+    if (sessionId) {
+        ws.sessionId = sessionId;
+        console.log(`WebSocket подключен к сессии ${sessionId}`);
+    }
+    
+    ws.on('message', (message) => {
+        try {
+            const data = JSON.parse(message);
+            if (data.type === 'join_session') {
+                ws.sessionId = data.sessionId;
+            }
+        } catch (e) {
+            console.error('Ошибка обработки сообщения:', e);
+        }
+    });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log('\n=== 🚀 КВИЗЛИ ЗАПУЩЕН ===');
     console.log(`📌 Порт: ${PORT}`);
-    console.log(`👤 Ведущий: /host.html`);
-    console.log(`📺 Проектор: /projector.html`);
-    console.log(`📱 Участник: /join.html`);
-    console.log(`🔑 Код игры: ${gameSession.code}`);
+    console.log(`👤 Ведущий: http://localhost:${PORT}/host.html`);
+    console.log(`📺 Проектор: http://localhost:${PORT}/projector.html`);
+    console.log(`📱 Участник: http://localhost:${PORT}/join.html`);
     console.log('===========================\n');
 });
