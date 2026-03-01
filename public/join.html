@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Kahoot Pro - Участник</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+            color: white;
+        }
+
+        /* Экран входа */
+        .join-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: clamp(20px, 5vw, 60px);
+            padding: clamp(20px, 5vw, 50px);
+            width: min(500px, 100%);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .join-card h1 {
+            text-align: center;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: clamp(20px, 5vw, 40px);
+        }
+
+        .join-card input {
+            width: 100%;
+            padding: clamp(15px, 3vw, 20px);
+            border-radius: 60px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: clamp(16px, 4vw, 1.3rem);
+            margin: 10px 0;
+            outline: none;
+        }
+
+        .join-card input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .join-card button {
+            width: 100%;
+            padding: clamp(15px, 3vw, 20px);
+            border-radius: 60px;
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            border: none;
+            font-size: clamp(1.5rem, 6vw, 2rem);
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            border-bottom: 5px solid #b45f06;
+            margin-top: 20px;
+            transition: all 0.1s;
+        }
+
+        .join-card button:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+        }
+
+        .game-screen {
+            display: none;
+            width: min(600px, 100%);
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        /* Общие стили для карточек */
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: clamp(20px, 5vw, 60px);
+            padding: clamp(20px, 5vw, 40px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Экран ожидания */
+        .waiting-screen {
+            text-align: center;
+        }
+
+        .loader {
+            width: min(100px, 20vw);
+            height: min(100px, 20vw);
+            border: 10px solid rgba(255, 255, 255, 0.2);
+            border-top: 10px solid #ffd700;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Экран вопроса */
+        .question-screen {
+            text-align: center;
+        }
+
+        .question-text {
+            font-size: clamp(1.3rem, 5vw, 2rem);
+            font-weight: 700;
+            margin: 15px 0;
+            line-height: 1.3;
+        }
+
+        .timer-circle {
+            width: min(120px, 25vw);
+            height: min(120px, 25vw);
+            background: linear-gradient(135deg, #ff4d4d, #ff0000);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(2rem, 8vw, 3.5rem);
+            font-weight: 800;
+            margin: 15px auto;
+            border: 4px solid white;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+
+        .options-list {
+            margin: 20px 0;
+        }
+
+        .answer-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            padding: clamp(15px, 3vw, 20px);
+            border-radius: 60px;
+            margin: 8px 0;
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-bottom: 5px solid #4a2b9c;
+        }
+
+        .answer-btn:active:not(:disabled) {
+            transform: translateY(2px);
+        }
+
+        .answer-btn.selected {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            border-color: white;
+        }
+
+        /* Экран результата */
+        .result-screen {
+            text-align: center;
+        }
+
+        .result-icon {
+            font-size: clamp(4rem, 15vw, 8rem);
+            margin: 15px 0;
+        }
+
+        .points-badge {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            padding: clamp(15px, 3vw, 20px);
+            border-radius: 60px;
+            font-size: clamp(1.8rem, 6vw, 2.5rem);
+            font-weight: 800;
+            color: white;
+            margin: 15px 0;
+        }
+
+        .total-score {
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            color: rgba(255, 255, 255, 0.9);
+            margin: 10px 0;
+        }
+
+        .rank-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: clamp(12px, 2.5vw, 15px) clamp(20px, 4vw, 30px);
+            border-radius: 40px;
+            font-size: clamp(1.2rem, 4vw, 1.5rem);
+            margin-top: 15px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .error-message {
+            color: #ff4d4d;
+            text-align: center;
+            margin-top: 15px;
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Экран входа -->
+    <div id="joinCard" class="join-card">
+        <h1>🔐 ВХОД</h1>
+        <input type="text" id="playerName" placeholder="Ваше имя" value="Игрок" autocomplete="off">
+        <input type="text" id="pinInput" placeholder="PIN-код" autocomplete="off">
+        <button id="joinBtn">Войти</button>
+        <div id="error" class="error-message"></div>
+    </div>
+
+    <!-- Экран игры -->
+    <div id="gameScreen" class="game-screen">
+        <!-- Ожидание вопроса -->
+        <div id="waitingScreen" class="card waiting-screen">
+            <div class="loader"></div>
+            <h2>Ожидание вопроса...</h2>
+            <p style="margin-top: 15px; opacity: 0.8;">Приготовьтесь!</p>
+        </div>
+
+        <!-- Экран вопроса -->
+        <div id="questionScreen" class="card question-screen hidden">
+            <div id="questionText" class="question-text"></div>
+            <div id="timerDisplay" class="timer-circle">0</div>
+            <div id="optionsContainer" class="options-list"></div>
+        </div>
+
+        <!-- Ожидание после ответа -->
+        <div id="waitingAnswerScreen" class="card waiting-screen hidden">
+            <div class="loader"></div>
+            <h2>Ждем остальных...</h2>
+            <p style="margin-top: 15px; opacity: 0.8;">Ваш ответ принят</p>
+        </div>
+
+        <!-- Результат -->
+        <div id="resultScreen" class="card result-screen hidden">
+            <div id="resultIcon" class="result-icon"></div>
+            <h2 id="resultMessage"></h2>
+            <div id="pointsDisplay" class="points-badge">+0</div>
+            <div id="totalScoreDisplay" class="total-score">Всего очков: 0</div>
+            <div id="rankDisplay" class="rank-badge">
+                <i class="fas fa-trophy" style="color: #ffd700;"></i>
+                Ваше место: <span id="placeDisplay">-</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        let participantId;
+        let currentQuestion = null;
+        let hasAnswered = false;
+        let playerName = '';
+
+        document.getElementById('joinBtn').addEventListener('click', () => {
+            playerName = document.getElementById('playerName').value.trim() || 'Игрок';
+            const pin = document.getElementById('pinInput').value.trim();
+
+            if (!pin) {
+                document.getElementById('error').textContent = 'Введите PIN-код';
+                return;
+            }
+
+            document.getElementById('joinBtn').disabled = true;
+            document.getElementById('joinBtn').textContent = 'Подключение...';
+
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({
+                    type: 'join',
+                    name: playerName,
+                    pin: pin
+                }));
+            };
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                switch (data.type) {
+                    case 'joined':
+                        if (data.success) {
+                            participantId = data.participantId;
+                            document.getElementById('joinCard').style.display = 'none';
+                            document.getElementById('gameScreen').classList.add('active');
+                            document.getElementById('error').textContent = '';
+                        } else {
+                            document.getElementById('error').textContent = 'Неверный PIN-код';
+                            document.getElementById('joinBtn').disabled = false;
+                            document.getElementById('joinBtn').textContent = 'Войти';
+                        }
+                        break;
+
+                    case 'current_slide':
+                        handleSlide(data.slide, data.showOptions, data.timeLeft);
+                        break;
+
+                    case 'slide_changed':
+                        hasAnswered = false;
+                        handleSlide(data.slide, false, 0);
+                        break;
+
+                    case 'show_options':
+                        if (currentQuestion) {
+                            showQuestionScreen(data.timer);
+                        }
+                        break;
+
+                    case 'timer_update':
+                        updateTimer(data.timeLeft);
+                        break;
+
+                    case 'answer_accepted':
+                        document.getElementById('questionScreen').classList.add('hidden');
+                        document.getElementById('waitingAnswerScreen').classList.remove('hidden');
+                        break;
+
+                    case 'your_result':
+                        showResult(data.correct, data.correctAnswer, data.pointsEarned, data.totalScore);
+                        break;
+
+                    case 'leaderboard':
+                        updateRank(data.leaderboard);
+                        break;
+                }
+            };
+        });
+
+        function handleSlide(slide, showOptions, timeLeft) {
+            document.getElementById('waitingScreen').classList.add('hidden');
+            document.getElementById('questionScreen').classList.add('hidden');
+            document.getElementById('waitingAnswerScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.add('hidden');
+
+            if (slide.type === 'question') {
+                currentQuestion = slide;
+                document.getElementById('questionText').textContent = slide.question;
+
+                const optionsContainer = document.getElementById('optionsContainer');
+                optionsContainer.innerHTML = '';
+
+                slide.options.forEach((opt, index) => {
+                    const button = document.createElement('button');
+                    button.className = 'answer-btn';
+                    button.textContent = opt;
+                    button.dataset.index = index;
+                    button.onclick = () => selectAnswer(index, button);
+                    optionsContainer.appendChild(button);
+                });
+
+                if (showOptions && !hasAnswered) {
+                    showQuestionScreen(timeLeft);
+                } else {
+                    document.getElementById('waitingScreen').classList.remove('hidden');
+                }
+            } else {
+                document.getElementById('waitingScreen').classList.remove('hidden');
+                currentQuestion = null;
+            }
+        }
+
+        function showQuestionScreen(timeLeft) {
+            document.getElementById('waitingScreen').classList.add('hidden');
+            document.getElementById('questionScreen').classList.remove('hidden');
+            document.getElementById('timerDisplay').textContent = timeLeft || 0;
+
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('selected');
+            });
+        }
+
+        function updateTimer(timeLeft) {
+            const timerDisplay = document.getElementById('timerDisplay');
+            timerDisplay.textContent = timeLeft;
+        }
+
+        function selectAnswer(index, button) {
+            if (!currentQuestion || hasAnswered) return;
+
+            document.querySelectorAll('.answer-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+            button.classList.add('selected');
+
+            hasAnswered = true;
+
+            ws.send(JSON.stringify({
+                type: 'answer',
+                answer: parseInt(index)
+            }));
+        }
+
+        function showResult(isCorrect, correctAnswer, pointsEarned, totalScore) {
+            document.getElementById('waitingAnswerScreen').classList.add('hidden');
+            document.getElementById('questionScreen').classList.add('hidden');
+            document.getElementById('resultScreen').classList.remove('hidden');
+
+            const resultIcon = document.getElementById('resultIcon');
+            const resultMessage = document.getElementById('resultMessage');
+            const pointsDisplay = document.getElementById('pointsDisplay');
+            const totalScoreDisplay = document.getElementById('totalScoreDisplay');
+
+            if (isCorrect) {
+                resultIcon.innerHTML = '✅';
+                resultMessage.innerHTML = `Правильно!<br><small>${correctAnswer}</small>`;
+                pointsDisplay.innerHTML = `+${pointsEarned}`;
+            } else {
+                resultIcon.innerHTML = '❌';
+                resultMessage.innerHTML = `Неправильно<br><small>Правильный ответ: ${correctAnswer}</small>`;
+                pointsDisplay.innerHTML = `+0`;
+            }
+
+            totalScoreDisplay.innerHTML = `Всего очков: ${totalScore}`;
+        }
+
+        function updateRank(leaderboard) {
+            const index = leaderboard.findIndex(item => item.name === playerName);
+            if (index !== -1) {
+                document.getElementById('placeDisplay').textContent = index + 1;
+            }
+        }
+    </script>
+</body>
+
+</html>

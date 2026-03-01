@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>Kahoot Pro - Ведущий</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Адаптивные размеры */
+        :root {
+            --scale-factor: min(1, calc(100vw / 1920));
+        }
+
+        /* Экран лобби */
+        .lobby {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: clamp(20px, 4vw, 60px);
+            padding: clamp(15px, 3vw, 50px);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: clamp(15px, 2.5vw, 30px);
+            border-radius: clamp(20px, 3vw, 40px);
+            margin-bottom: clamp(20px, 3vw, 50px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .qr-section {
+            display: flex;
+            align-items: center;
+            gap: clamp(10px, 2vw, 30px);
+            flex-wrap: wrap;
+        }
+
+        .qr-code {
+            width: clamp(60px, 8vw, 120px);
+            height: clamp(60px, 8vw, 120px);
+            background: white;
+            border-radius: clamp(15px, 2vw, 30px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .qr-code i {
+            font-size: clamp(30px, 4vw, 60px);
+            color: #764ba2;
+        }
+
+        .qr-code span {
+            color: #764ba2;
+            font-weight: bold;
+            font-size: clamp(10px, 1.2vw, 14px);
+        }
+
+        .join-link {
+            background: rgba(255, 255, 255, 0.2);
+            padding: clamp(10px, 1.5vw, 15px) clamp(15px, 2vw, 30px);
+            border-radius: 40px;
+            font-size: clamp(14px, 1.5vw, 1.3rem);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            white-space: nowrap;
+        }
+
+        .game-pin {
+            text-align: center;
+        }
+
+        .pin-label {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: clamp(12px, 1.2vw, 1.2rem);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .pin-number {
+            font-size: clamp(2rem, 6vw, 5rem);
+            font-weight: 800;
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            line-height: 1.2;
+        }
+
+        .players-panel {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: clamp(20px, 3vw, 40px);
+            padding: clamp(20px, 3vw, 40px);
+            margin-bottom: clamp(20px, 3vw, 40px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .players-title {
+            font-size: clamp(1.2rem, 2.5vw, 2rem);
+            color: white;
+            margin-bottom: clamp(15px, 2vw, 30px);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .players-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: clamp(8px, 1.5vw, 15px);
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 5px;
+        }
+
+        .player-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: clamp(8px, 1.2vw, 15px) clamp(15px, 2vw, 30px);
+            border-radius: 40px;
+            font-size: clamp(12px, 1.3vw, 1.2rem);
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+
+        .player-score {
+            background: rgba(255, 215, 0, 0.3);
+            padding: 3px 12px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.9em;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            border: none;
+            padding: clamp(15px, 2.5vw, 25px) clamp(40px, 6vw, 80px);
+            border-radius: 60px;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 800;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #b45f06, 0 20px 30px rgba(0, 0, 0, 0.3);
+            margin: 10px auto 0;
+            display: block;
+            transition: all 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            width: fit-content;
+        }
+
+        .start-btn:active {
+            transform: translateY(5px);
+            box-shadow: 0 5px 0 #b45f06, 0 20px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Экран игры */
+        .game-screen {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: clamp(20px, 4vw, 60px);
+            padding: clamp(15px, 3vw, 40px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .game-screen.active {
+            display: block;
+        }
+
+        .game-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: clamp(10px, 2vw, 20px) clamp(15px, 3vw, 40px);
+            border-radius: 40px;
+            margin-bottom: clamp(15px, 2.5vw, 30px);
+            color: white;
+        }
+
+        .timer-circle {
+            width: clamp(60px, 8vw, 100px);
+            height: clamp(60px, 8vw, 100px);
+            background: linear-gradient(135deg, #ff4d4d, #ff0000);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(1.8rem, 4vw, 3rem);
+            font-weight: 800;
+            border: 4px solid white;
+            box-shadow: 0 0 30px rgba(255, 0, 0, 0.5);
+        }
+
+        .answered-count {
+            background: rgba(255, 255, 255, 0.2);
+            padding: clamp(8px, 1.5vw, 15px) clamp(15px, 2.5vw, 30px);
+            border-radius: 40px;
+            font-size: clamp(14px, 1.8vw, 1.5rem);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            white-space: nowrap;
+        }
+
+        .slide-content {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: clamp(20px, 3vw, 40px);
+            padding: clamp(15px, 3vw, 50px);
+            margin: clamp(15px, 2vw, 30px) 0;
+            color: white;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .welcome-title {
+            font-size: clamp(2rem, 6vw, 5rem);
+            text-align: center;
+            color: #ffd700;
+            margin-bottom: 15px;
+            text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            line-height: 1.2;
+        }
+
+        .welcome-subtitle {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            text-align: center;
+            color: white;
+        }
+
+        .question-text {
+            font-size: clamp(1.5rem, 4vw, 3rem);
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+
+        .media-container {
+            max-width: min(800px, 90%);
+            margin: 0 auto 20px;
+            border-radius: 30px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .media-container img,
+        .media-container video {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+        }
+
+        .audio-player {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 60px;
+            margin: 20px 0;
+        }
+
+        .audio-player audio {
+            width: 100%;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(250px, 100%), 1fr));
+            gap: clamp(10px, 2vw, 20px);
+            margin: 20px 0;
+        }
+
+        .option-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: clamp(15px, 2.5vw, 30px);
+            border-radius: 40px;
+            font-size: clamp(1rem, 2.5vw, 2rem);
+            text-align: center;
+            color: white;
+            border: 3px solid rgba(255, 255, 255, 0.5);
+            transition: all 0.3s;
+            font-weight: 600;
+            box-shadow: 0 5px 0 #4a2b9c;
+            word-break: break-word;
+        }
+
+        .option-card.correct-highlight {
+            background: linear-gradient(135deg, #00b09b, #96c93d);
+            transform: scale(1.02);
+            box-shadow: 0 0 30px #00ff00;
+            border-color: white;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            padding: clamp(12px, 2vw, 20px) clamp(20px, 3vw, 40px);
+            border-radius: 60px;
+            font-size: clamp(14px, 2vw, 1.5rem);
+            color: white;
+            cursor: pointer;
+            border-bottom: 5px solid rgba(0, 0, 0, 0.3);
+            flex: 1 1 auto;
+            min-width: 200px;
+            font-weight: 600;
+            transition: all 0.1s;
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, #ffd700, #ffa500);
+            border-bottom-color: #b45f06;
+        }
+
+        .btn:active {
+            transform: translateY(3px);
+            border-bottom-width: 2px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Скроллбар */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .qr-section {
+                justify-content: center;
+            }
+
+            .controls .btn {
+                min-width: 100%;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="container">
+        <!-- Экран лобби -->
+        <div id="lobby" class="lobby">
+            <div class="header">
+                <div class="qr-section">
+                    <div class="qr-code">
+                        <i class="fas fa-qrcode"></i>
+                        <span>QR</span>
+                    </div>
+                    <div class="join-link" id="joinLink">
+                        <i class="fas fa-link"></i> Загрузка...
+                    </div>
+                </div>
+                <div class="game-pin">
+                    <div class="pin-label">PIN</div>
+                    <div class="pin-number" id="pinDisplay">0000</div>
+                </div>
+            </div>
+
+            <div class="players-panel">
+                <div class="players-title">
+                    <i class="fas fa-users"></i> Участники (<span id="onlineCount">0</span>)
+                </div>
+                <div class="players-grid" id="playersList">
+                    <div class="player-card">Ожидание игроков...</div>
+                </div>
+            </div>
+
+            <button class="start-btn" id="startGameBtn">
+                <i class="fas fa-play"></i> НАЧАТЬ
+            </button>
+        </div>
+
+        <!-- Экран игры -->
+        <div id="gameScreen" class="game-screen">
+            <div class="game-header">
+                <span><i class="fas fa-crown" style="color: #ffd700;"></i> Ведущий</span>
+                <div class="timer-circle" id="timerDisplay">0</div>
+                <span class="answered-count" id="answeredDisplay">
+                    <i class="fas fa-check-circle"></i> 0 ответили
+                </span>
+            </div>
+
+            <!-- Контент слайда -->
+            <div id="slideContent" class="slide-content">
+                <!-- Динамически заполняется -->
+            </div>
+
+            <!-- Управление -->
+            <div class="controls">
+                <button class="btn" id="showOptionsBtn">
+                    <i class="fas fa-list"></i> ПОКАЗАТЬ ОТВЕТЫ
+                </button>
+                <button class="btn primary" id="nextBtn">
+                    <i class="fas fa-forward"></i> ДАЛЕЕ
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let ws;
+        let currentSlideIndex = 0;
+
+        // Получаем PIN и IP
+        Promise.all([
+            fetch('/api/pin').then(res => res.json()),
+            fetch('/api/ip').then(res => res.json())
+        ]).then(([pinData, ipData]) => {
+            document.getElementById('pinDisplay').textContent = pinData.pin;
+            document.getElementById('joinLink').innerHTML = `<i class="fas fa-link"></i> ${ipData.ip}:${ipData.port}/join.html`;
+        });
+
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${protocol}//${window.location.host}`;
+            ws = new WebSocket(wsUrl);
+
+            ws.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+
+                switch (data.type) {
+                    case 'participants':
+                        updateParticipants(data.participants);
+                        break;
+
+                    case 'game_started':
+                    case 'slide_changed':
+                        document.getElementById('lobby').style.display = 'none';
+                        document.getElementById('gameScreen').classList.add('active');
+                        renderSlide(data.slide);
+                        break;
+
+                    case 'show_options':
+                        document.getElementById('timerDisplay').textContent = data.timer;
+                        document.getElementById('showOptionsBtn').disabled = true;
+                        break;
+
+                    case 'timer_update':
+                        document.getElementById('timerDisplay').textContent = data.timeLeft;
+                        break;
+
+                    case 'answered_count':
+                        document.getElementById('answeredDisplay').innerHTML =
+                            `<i class="fas fa-check-circle"></i> ${data.count}/${data.total} ответили`;
+                        break;
+
+                    case 'show_results':
+                        highlightCorrectAnswer(data.correctIndex, data.correctText);
+                        break;
+                }
+            };
+
+            ws.onclose = () => {
+                console.log('Соединение потеряно, переподключение...');
+                setTimeout(connectWebSocket, 3000);
+            };
+        }
+
+        function renderSlide(slide) {
+            const content = document.getElementById('slideContent');
+            const showBtn = document.getElementById('showOptionsBtn');
+
+            showBtn.disabled = false;
+            document.getElementById('timerDisplay').textContent = '0';
+            document.getElementById('answeredDisplay').innerHTML = '<i class="fas fa-check-circle"></i> 0 ответили';
+
+            if (slide.type === 'welcome') {
+                content.innerHTML = `
+                    <div class="welcome-title">${slide.title}</div>
+                    <div class="welcome-subtitle">${slide.subtitle}</div>
+                `;
+                showBtn.style.display = 'none';
+            }
+            else if (slide.type === 'question') {
+                let mediaHtml = '';
+
+                if (slide.image) {
+                    mediaHtml = `
+                        <div class="media-container">
+                            <img src="${slide.image}" alt="question" loading="lazy">
+                        </div>
+                    `;
+                }
+
+                if (slide.video) {
+                    mediaHtml = `
+                        <div class="media-container">
+                            <video src="${slide.video}" controls autoplay loop playsinline></video>
+                        </div>
+                    `;
+                }
+
+                if (slide.audio) {
+                    mediaHtml = `
+                        <div class="audio-player">
+                            <audio src="${slide.audio}" controls autoplay></audio>
+                        </div>
+                    `;
+                }
+
+                let optionsHtml = '';
+                slide.options.forEach(opt => {
+                    optionsHtml += `<div class="option-card">${opt}</div>`;
+                });
+
+                content.innerHTML = `
+                    <div class="question-text">${slide.question}</div>
+                    ${mediaHtml}
+                    <div class="options-grid" id="optionsGrid">
+                        ${optionsHtml}
+                    </div>
+                `;
+                showBtn.style.display = 'block';
+            }
+        }
+
+        function highlightCorrectAnswer(index, text) {
+            const options = document.querySelectorAll('.option-card');
+            options.forEach((opt, i) => {
+                if (i === index) {
+                    opt.classList.add('correct-highlight');
+                }
+            });
+        }
+
+        function updateParticipants(participants) {
+            const list = document.getElementById('playersList');
+            const count = document.getElementById('onlineCount');
+
+            if (participants.length === 0) {
+                list.innerHTML = '<div class="player-card">Ожидание игроков...</div>';
+            } else {
+                list.innerHTML = '';
+                participants.slice(0, 20).forEach(p => {
+                    const div = document.createElement('div');
+                    div.className = 'player-card';
+                    div.innerHTML = `
+                        <i class="fas fa-user"></i> ${p.name}
+                        <span class="player-score">${p.score}</span>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+            count.textContent = participants.length;
+        }
+
+        document.getElementById('startGameBtn').addEventListener('click', () => {
+            fetch('/api/start', { method: 'POST' });
+        });
+
+        document.getElementById('showOptionsBtn').addEventListener('click', () => {
+            fetch('/api/show-options', { method: 'POST' });
+        });
+
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            fetch('/api/next', { method: 'POST' });
+        });
+
+        connectWebSocket();
+    </script>
+</body>
+
+</html>
