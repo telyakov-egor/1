@@ -185,7 +185,9 @@ function startTimer() {
         }
     }, 1000);
 }
-
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok', time: new Date().toISOString() });
+});
 app.post('/api/reset', (req, res) => {
     gameState.active = false;
     gameState.currentSlide = 0;
