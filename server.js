@@ -24,7 +24,7 @@ let gameState = {
 
 let participants = [];
 
-// Вопросы с медиа (используем надежные CDN ссылки)
+// Вопросы с медиа
 let questions = [
     {
         type: 'welcome',
@@ -63,9 +63,14 @@ let questions = [
     }
 ];
 
-// Статические файлы
+// Middleware для логирования запросов (для отладки)
+app.use((req, res, next) => {
+    console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+    next();
+});
+
+// Статические файлы - ВАЖНО: правильный путь
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
 
 // API endpoints
 app.get('/api/pin', (req, res) => {
@@ -73,7 +78,17 @@ app.get('/api/pin', (req, res) => {
 });
 
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', time: new Date().toISOString() });
+    res.json({ 
+        status: 'ok', 
+        time: new Date().toISOString(),
+        pin: gameState.pin,
+        participants: participants.length
+    });
+});
+
+// Обработка корневого пути - редирект на host.html
+app.get('/', (req, res) => {
+    res.redirect('/host.html');
 });
 
 app.post('/api/start', (req, res) => {
@@ -84,12 +99,12 @@ app.post('/api/start', (req, res) => {
     gameState.correctAnswerRevealed = false;
     gameState.answers.clear();
     gameState.answeredCount = 0;
-
+    
     broadcast({
         type: 'game_started',
         slide: questions[0]
     });
-
+    
     res.json({ success: true });
 });
 
@@ -101,7 +116,7 @@ app.post('/api/next', (req, res) => {
         gameState.correctAnswerRevealed = false;
         gameState.answers.clear();
         gameState.answeredCount = 0;
-
+        
         broadcast({
             type: 'slide_changed',
             slide: questions[gameState.currentSlide]
@@ -112,7 +127,7 @@ app.post('/api/next', (req, res) => {
 
 app.post('/api/show-options', (req, res) => {
     const currentQuestion = questions[gameState.currentSlide];
-
+    
     if (currentQuestion.type === 'question') {
         gameState.showOptions = true;
         gameState.timerActive = true;
@@ -122,15 +137,15 @@ app.post('/api/show-options', (req, res) => {
         gameState.correctAnswerRevealed = false;
         gameState.answers.clear();
         gameState.answeredCount = 0;
-
+        
         startTimer();
-
+        
         broadcast({
             type: 'show_options',
             timer: currentQuestion.timer
         });
     }
-
+    
     res.json({ success: true });
 });
 
@@ -142,34 +157,34 @@ function calculateScore(responseTime, maxTime, basePoints = 1000) {
 function startTimer() {
     const timerInterval = setInterval(() => {
         const timeLeft = Math.max(0, Math.ceil((gameState.timerEndTime - Date.now()) / 1000));
-
+        
         broadcast({
             type: 'timer_update',
             timeLeft: timeLeft
         });
-
+        
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             gameState.timerActive = false;
             gameState.correctAnswerRevealed = true;
-
+            
             const currentQuestion = questions[gameState.currentSlide];
-
+            
             broadcast({
                 type: 'show_results',
                 correctIndex: currentQuestion.correct,
                 correctText: currentQuestion.options[currentQuestion.correct]
             });
-
+            
             participants.forEach(participant => {
                 const answer = gameState.answers.get(participant.id);
                 let pointsEarned = 0;
-
+                
                 if (answer && answer.isCorrect) {
                     pointsEarned = calculateScore(answer.responseTime, currentQuestion.timer);
                     participant.score += pointsEarned;
                 }
-
+                
                 if (participant.ws && participant.ws.readyState === WebSocket.OPEN) {
                     participant.ws.send(JSON.stringify({
                         type: 'your_result',
@@ -180,14 +195,12 @@ function startTimer() {
                     }));
                 }
             });
-
+            
             broadcastLeaderboard();
         }
     }, 1000);
 }
-app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok', time: new Date().toISOString() });
-});
+
 app.post('/api/reset', (req, res) => {
     gameState.active = false;
     gameState.currentSlide = 0;
@@ -202,13 +215,13 @@ app.post('/api/reset', (req, res) => {
 
 // WebSocket
 wss.on('connection', (ws) => {
-    console.log('Новое подключение');
-
+    console.log('Новое WebSocket подключение');
+    
     ws.on('message', (message) => {
         try {
             const data = JSON.parse(message);
-
-            switch (data.type) {
+            
+            switch(data.type) {
                 case 'join':
                     if (data.pin === gameState.pin) {
                         const participant = {
@@ -218,16 +231,16 @@ wss.on('connection', (ws) => {
                             answers: [],
                             ws: ws
                         };
-
+                        
                         participants.push(participant);
                         ws.participantId = participant.id;
-
+                        
                         ws.send(JSON.stringify({
                             type: 'joined',
                             success: true,
                             participantId: participant.id
                         }));
-
+                        
                         ws.send(JSON.stringify({
                             type: 'current_slide',
                             slide: questions[gameState.currentSlide],
@@ -235,7 +248,7 @@ wss.on('connection', (ws) => {
                             timerActive: gameState.timerActive,
                             timeLeft: gameState.timerActive ? Math.max(0, Math.ceil((gameState.timerEndTime - Date.now()) / 1000)) : 0
                         }));
-
+                        
                         broadcastParticipants();
                     } else {
                         ws.send(JSON.stringify({
@@ -245,22 +258,22 @@ wss.on('connection', (ws) => {
                         }));
                     }
                     break;
-
+                    
                 case 'answer':
                     const participant = participants.find(p => p.id === ws.participantId);
                     if (participant && gameState.timerActive && !gameState.correctAnswerRevealed) {
                         const currentQuestion = questions[gameState.currentSlide];
-
+                        
                         if (!gameState.answers.has(participant.id)) {
                             const responseTime = (Date.now() - gameState.questionStartTime) / 1000;
                             const isCorrect = data.answer === currentQuestion.correct;
-
+                            
                             gameState.answers.set(participant.id, {
                                 answerIndex: data.answer,
                                 isCorrect: isCorrect,
                                 responseTime: responseTime
                             });
-
+                            
                             if (isCorrect) {
                                 participant.answers.push({
                                     questionIndex: gameState.currentSlide,
@@ -268,13 +281,13 @@ wss.on('connection', (ws) => {
                                     responseTime: responseTime
                                 });
                             }
-
+                            
                             gameState.answeredCount = gameState.answers.size;
-
+                            
                             ws.send(JSON.stringify({
                                 type: 'answer_accepted'
                             }));
-
+                            
                             broadcast({
                                 type: 'answered_count',
                                 count: gameState.answeredCount,
@@ -288,7 +301,7 @@ wss.on('connection', (ws) => {
             console.error('Ошибка обработки сообщения:', e);
         }
     });
-
+    
     ws.on('close', () => {
         participants = participants.filter(p => p.ws !== ws);
         broadcastParticipants();
@@ -309,7 +322,7 @@ function broadcastParticipants() {
         name: p.name,
         score: p.score
     }));
-
+    
     broadcast({
         type: 'participants',
         participants: participantList
@@ -321,7 +334,7 @@ function broadcastLeaderboard() {
         .sort((a, b) => b.score - a.score)
         .slice(0, 5)
         .map(p => ({ name: p.name, score: p.score }));
-
+    
     broadcast({
         type: 'leaderboard',
         leaderboard
@@ -332,6 +345,7 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log('\n=== 🚀 СЕРВЕР ЗАПУЩЕН ===');
     console.log(`📱 Порт: ${PORT}`);
+    console.log(`📁 Public path: ${path.join(__dirname, 'public')}`);
     console.log(`👤 Ведущий: http://localhost:${PORT}/host.html`);
     console.log(`📱 Участник: http://localhost:${PORT}/join.html`);
     console.log(`🔑 PIN код: ${gameState.pin}`);
